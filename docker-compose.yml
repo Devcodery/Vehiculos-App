@@ -1,0 +1,31 @@
+services:
+  db:
+    image: postgres:16
+    container_name: autocare_db
+    restart: always
+    environment:
+      POSTGRES_USER: ${USUARIO_BD}
+      POSTGRES_PASSWORD: ${PASSWORD_BD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    ports:
+      - "5444:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  backend:
+    build: ./backend
+    container_name: autocare_api
+    depends_on:
+      - db
+    environment:
+      DATABASE_URL: postgresql://${USUARIO_BD}:${PASSWORD_BD}@db:5432/${POSTGRES_DB}
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend:/app
+      - ./media:/app/media
+    env_file:
+      - .env
+
+volumes:
+  postgres_data:
