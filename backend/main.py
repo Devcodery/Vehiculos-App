@@ -123,7 +123,6 @@ app.add_middleware(
     allow_headers=["*"], # Permite todas las cabeceras (incluyendo tu Token JWT)
 )
 
-
 # --- ROUTES ---
 
 @app.get("/")
