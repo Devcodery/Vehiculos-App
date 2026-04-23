@@ -17,7 +17,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 load_dotenv()
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-MEDIA_ROOT = "media"
+MEDIA_ROOT = "/app/media"
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 origins = [
@@ -25,7 +25,7 @@ origins = [
     "http://127.0.0.1:5173",
 ]
 
-# 🔐 CONFIGURACIÓN DE SEGURIDAD (Esto debería ir en tu .env después)
+# CONFIGURACIÓN DE SEGURIDAD (Esto debería ir en tu .env después)
 SECRET_KEY = os.getenv("SECRET_KEY", "MessiLoversGatusoOnlyFans20")
 ALGORITHM = os.getenv("ALGORITHM", "HS256")
 ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", 30))
@@ -186,16 +186,14 @@ async def create_vehicle(matricula: str = Form(...),
     
     if archivo_foto:
         # Guardamos la foto en el servidor
-        subcarpeta_usuario = f"vehicles/user{user_id}"
         
-        carpeta_destino = os.path.join(MEDIA_ROOT, subcarpeta_usuario)
+        user_subfolder = f"vehicles/user{current_user.id}"
+        destination_folder = os.path.join(MEDIA_ROOT, user_subfolder)
+        os.makedirs(destination_folder, exist_ok=True)
         
-        os.makedirs(carpeta_destino, exist_ok=True)
+        print(f"Guardando foto en: {destination_folder}")
         
         if archivo_foto and archivo_foto.filename:
-            user_subfolder = f"vehicles/user{current_user.id}"
-            destination_folder = os.path.join(MEDIA_ROOT, user_subfolder)
-            os.makedirs(destination_folder, exist_ok=True)
             
             clean_name = archivo_foto.filename.replace(" ", "_")
             final_name = f"{matricula}_{clean_name}"
@@ -239,10 +237,10 @@ async def create_product(marca: str = Form(...),
     
     db_path = None
     
-    if archivo_foto and archivo_foto.filename:
-        product_folder = os.path.join(MEDIA_ROOT, "products")
-        os.makedirs(product_folder, exist_ok=True)
+    product_folder = os.path.join(MEDIA_ROOT, "products")
+    os.makedirs(product_folder, exist_ok=True)
         
+    if archivo_foto and archivo_foto.filename:
         clean_name = archivo_foto.filename.replace(" ", "_")
         file_name = f"{marca}_{nombre}_{clean_name}"
         full_path = os.path.join(product_folder, file_name)
