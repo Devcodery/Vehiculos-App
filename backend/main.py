@@ -1,19 +1,20 @@
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, Depends, HTTPException, status, File, UploadFile, Form
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.security import OAuth2PasswordRequestForm, OAuth2PasswordBearer
+from fastapi.staticfiles import StaticFiles
 from sqlmodel import Session, select
 from database import create_db_and_tables, get_session
 from passlib.context import CryptContext
 import hashlib
 from models import User, Vehicle, Product, RevisionType, Revision # Mantenemos el import para que se creen las tablas
-from fastapi.security import OAuth2PasswordRequestForm, OAuth2PasswordBearer
 from datetime import datetime, timedelta, timezone
 from jose import JWTError, jwt
 import os
 from dotenv import load_dotenv
 import shutil
-from fastapi.staticfiles import StaticFiles
 from typing import Optional
-from fastapi.middleware.cors import CORSMiddleware
+
 
 load_dotenv()
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
