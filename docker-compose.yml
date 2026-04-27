@@ -23,7 +23,7 @@ services:
       - "8000:8000"
     volumes:
       - ./backend:/app
-      - ./media:/app/media
+      - ./media:/media_files
     env_file:
       - .env
 

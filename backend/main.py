@@ -7,7 +7,7 @@ from sqlmodel import Session, select
 from database import create_db_and_tables, get_session
 from passlib.context import CryptContext
 import hashlib
-from models import User, Vehicle, Product, RevisionType, Revision # Mantenemos el import para que se creen las tablas
+from models import User, Vehicle, Product, RevisionType, Revision
 from datetime import datetime, timedelta, timezone
 from jose import JWTError, jwt
 import os
@@ -18,7 +18,7 @@ from typing import Optional
 
 load_dotenv()
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-MEDIA_ROOT = "/app/media"
+MEDIA_ROOT = "/media_files"
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 origins = [
@@ -26,7 +26,6 @@ origins = [
     "http://127.0.0.1:5173",
 ]
 
-# CONFIGURACIÓN DE SEGURIDAD (Esto debería ir en tu .env después)
 SECRET_KEY = os.getenv("SECRET_KEY", "MessiLoversGatusoOnlyFans20")
 ALGORITHM = os.getenv("ALGORITHM", "HS256")
 ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", 30))
