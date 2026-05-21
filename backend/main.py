@@ -4,7 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import OAuth2PasswordRequestForm, OAuth2PasswordBearer
 from fastapi.staticfiles import StaticFiles
 from sqlmodel import Session, select
-from database import create_db_and_tables, get_session
+from database import create_db_and_tables, get_session, engine
 from passlib.context import CryptContext
 import hashlib
 from models import User, Vehicle, Product, RevisionType, Revision
@@ -29,6 +29,12 @@ origins = [
 SECRET_KEY = os.getenv("SECRET_KEY", "MessiLoversGatusoOnlyFans20")
 ALGORITHM = os.getenv("ALGORITHM", "HS256")
 ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", 30))
+
+ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "")
+ADMIN_EMAIL = os.getenv("ADMIN_EMAIL", "")
+ADMIN_FULLNAME = os.getenv("ADMIN_FULLNAME", "Admin AutoCare Pro")
+ADMIN_ROLE = os.getenv("ADMIN_ROLE", "admin")
+
 
 def verify_env_variables():
     missing_vars = []
@@ -102,6 +108,30 @@ async def lifespan(app: FastAPI):
     print("Arrancando la API y verificando tablas...")
     create_db_and_tables()
     
+    with Session(engine) as session:
+        # Preguntamos: ¿Hay algún usuario en la tabla?
+        primer_usuario = session.exec(select(User)).first()
+        
+        # Si la respuesta es NO (None), lo creamos nosotros
+        if not primer_usuario:
+            print("Base de datos vacía. Creando Administrador por defecto...")
+            
+            # Hasheamos la contraseña que queramos ponerle 
+            pre_hashed = get_password_prehash(ADMIN_PASSWORD)
+            hashed_password = pwd_context.hash(pre_hashed)
+            
+            admin_user = User(
+                email=ADMIN_EMAIL,
+                nombre=ADMIN_FULLNAME,
+                password_hash=hashed_password,
+                rol=ADMIN_ROLE
+            )
+            
+            session.add(admin_user)
+            session.commit()
+        else:
+            print("👍 La base de datos ya contiene usuarios.")
+    
     yield  # Aquí es donde la aplicación "vive" y atiende peticiones
     
     # --- ACCIONES AL CERRAR (SHUTDOWN) ---
@@ -150,12 +180,15 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends(), session: Sessi
     
 
 @app.post("/usuarios/", response_model=User)
-async def create_user(user: User, session: Session = Depends(get_session)):
+async def create_user(user: User, session: Session = Depends(get_session), current_user: User = Depends(get_current_user)):
     # Comprobamos si el email ya existe
     statement = select(User).where(User.email == user.email)
     existing_user = session.exec(statement).first()
     
-    # Si no existe lanzamos la excepcion
+    if current_user.rol != "admin":
+        raise HTTPException(status_code=403, detail="Solo los administradores pueden crear nuevos usuarios")
+    
+    # Si existe lanzamos la excepcion
     if existing_user:
         raise HTTPException(status_code=400, detail="Email already registered")
     
