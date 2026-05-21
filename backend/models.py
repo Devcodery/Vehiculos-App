@@ -42,6 +42,7 @@ class Product(SQLModel, table=True):
 class RevisionType(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     nombre: str = Field(unique=True)
+    detalles: str
     cada_cuantos_Km: int
     cada_cuantos_Meses: int
     
