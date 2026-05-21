@@ -10,33 +10,33 @@
         <form @submit.prevent="saveCar" class="comic-form">
           <div class="form-grid">
             <div class="input-group">
-              <label class="label-form" for="marca">Marca</label>
+              <label class="label-form" for="marca">Marca:</label>
               <input class="input-form" id="marca" v-model="carForm.marca" type="text" required placeholder="Ej: Nissan">
             </div>
 
             <div class="input-group">
-              <label class="label-form" for="modelo">Modelo</label>
+              <label class="label-form" for="modelo">Modelo:</label>
               <input class="input-form"  id="modelo" v-model="carForm.modelo" type="text" required placeholder="Ej: Skyline R34">
             </div>
 
             <div class="input-group">
-              <label class="label-form" for="matricula">Matrícula</label>
+              <label class="label-form" for="matricula">Matrícula:</label>
               <input class="input-form"  id="matricula" v-model="carForm.matricula" type="text" required placeholder="Ej: GTR-001">
             </div>
 
             <div class="input-group">
-              <label class="label-form" for="kilometraje">Kilometraje</label>
+              <label class="label-form" for="kilometraje">Kilometraje:</label>
               <input class="input-form" id="kilometraje" v-model="carForm.kilometraje" type="number" required min="0" placeholder="Ej: 15000">
             </div>
 
             <div class="input-group">
-              <label class="label-form" for="alias">Alias</label>
+              <label class="label-form" for="alias">Alias:</label>
               <input class="input-form" id="alias" v-model="carForm.alias" type="text" placeholder="Ej: Godzilla">
             </div>
           </div>
 
           <div class="input-group upload-group">
-            <label class="label-form" for="foto">Foto del Vehículo</label>
+            <label class="label-form" for="foto">Foto del Vehículo:</label>
             <input id="foto" type="file" @change="handleFileUpload" accept="image/*" class="file-input cell-shaded">
           </div>
 
@@ -135,7 +135,7 @@ const saveCar = async () => {
   cursor: pointer; transition: transform 0.2s;
 }
 .cancel-btn { background: #ff3366; color: #fff; }
-.save-btn { background: var(--neon-green); color: #e4d1d1; }
+.save-btn { background: var(--neon-yellow); color: #000; }
 .cancel-btn:hover, .save-btn:hover { transform: translate(-3px, -3px); }
 .modal-fade-enter-active, .modal-fade-leave-active { transition: opacity 0.3s ease, transform 0.3s ease; }
 .modal-fade-enter-from, .modal-fade-leave-to { opacity: 0; transform: scale(0.95); }
@@ -152,17 +152,6 @@ const saveCar = async () => {
     padding: 0.4em;
     background: #111;
     color: #ffffff;
-}
-
-input[type="number"]::-webkit-outer-spin-button,
-input[type="number"]::-webkit-inner-spin-button {
-  -webkit-appearance: none;
-  margin: 0;
-}
-
-/* Para Firefox */
-input[type="number"] {
-  -moz-appearance: textfield;
-  appearance: textfield;
+    border: 3px solid #000;
 }
 </style>
