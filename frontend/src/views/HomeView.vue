@@ -56,7 +56,7 @@
 
           <div class="action-grid">
 
-            <button class="tile-btn cell-shaded" @click="goTo('add-car')">
+            <button class="tile-btn cell-shaded" @click="openCarModal">
               <i class="fa-solid fa-car tile-icon"></i>
               <h3 class="tile-title">AGREGAR AUTO</h3>
               <p class="tile-desc">Registro de nueva unidad al garaje.</p>
@@ -85,6 +85,61 @@
 
       </div>
     </main>
+
+    <Transition name="modal-fade">
+     <div v-if="showCarModal" class="modal-overlay" @click.self="closeCarModal">
+        <div class="modal-content cell-shaded">
+          
+          <h2 class="modal-title">
+            <i class="fa-solid fa-car"></i> REGISTRAR AUTO
+          </h2>
+          
+          <form @submit.prevent="saveCar" class="comic-form">
+            <div class="form-grid">
+              <div class="input-group">
+                <label>Marca:</label>
+                <input v-model="carForm.marca" type="text" required placeholder="Ej: Nissan">
+              </div>
+
+              <div class="input-group">
+                <label>Modelo:</label>
+                <input v-model="carForm.modelo" type="text" required placeholder="Ej: Skyline R34">
+              </div>
+
+              <div class="input-group">
+                <label>Matrícula:</label>
+                <input v-model="carForm.matricula" type="text" required placeholder="Ej: GTR-001">
+              </div>
+
+              <div class="input-group">
+                <label>Kilometraje:</label>
+                <input v-model="carForm.kilometraje" type="number" required min="0" placeholder="Ej: 15000">
+              </div>
+
+              <div class="input-group">
+                <label>Alias :</label>
+                <input v-model="carForm.alias" type="text" placeholder="Ej: Godzilla">
+              </div>
+            </div>
+
+            <div class="input-group upload-group">
+              <label>Foto del Vehículo:</label>
+              <input type="file" @change="handleFileUpload" accept="image/*" class="file-input cell-shaded">
+            </div>
+
+            <div class="modal-actions">
+              <button type="button" class="cancel-btn cell-shaded" @click="closeCarModal">
+                CANCELAR
+              </button>
+              <button type="submit" class="save-btn cell-shaded">
+                <i class="fa-solid fa-floppy-disk"></i> GUARDAR
+              </button>
+            </div>
+          </form>
+
+        </div>
+      </div>
+    </Transition>
   </div>
 </template>
 
@@ -98,6 +153,15 @@ const authStore = useAuthStore()
 const router = useRouter()
 
 const cars = ref([])
+const showCarModal = ref(false)
+const carForm = ref({
+  marca: '',
+  modelo: '',
+  matricula: '',
+  alias: '',
+  kilometraje: 0,
+  foto: null
+})
 
 // Funcion para extraer los vehiculos del usuario de la base de datos
 const fetchVehiculos = async () => {
@@ -113,9 +177,65 @@ const fetchVehiculos = async () => {
   }
 }
 
+// Con esto hacemos que se cargue nada abrir la pagina
 onMounted(() => {
   fetchVehiculos()
 })
+
+// --- LÓGICA DEL MODAL DE VEHÍCULOS ---
+
+// Abrir el registrar carro
+const openCarModal = () => {
+  showCarModal.value = true
+}
+
+// Cerrar el registrar carro
+const closeCarModal = () => {
+  showCarModal.value = false
+
+  //Limpiamos el formulario
+  carForm.value = { marca: '', modelo: '', matricula: '', alias: '', foto: null }
+}
+
+// Controlamos el subir una imagen
+const handleFileUpload = (event) => {
+  const file = event.target.files[0]
+  if (file) {
+    carForm.value.foto = file
+  }
+}
+
+const saveCar = async () => {
+  try {
+    // Al llevar imagen, DEBEMOS usar FormData
+    const formData = new FormData()
+    formData.append('marca', carForm.value.marca)
+    formData.append('modelo', carForm.value.modelo)
+    formData.append('matricula', carForm.value.matricula)
+    formData.append('kilometraje', carForm.value.kilometraje)
+    formData.append('alias', carForm.value.alias || "")
+    
+    // Si el usuario subió una foto, la metemos en el paquete
+    if (carForm.value.foto) {
+      formData.append('foto', carForm.value.foto)
+    }
+
+    // Hacemos el POST (Asegúrate de que la ruta coincida con tu backend)
+    await api.post('/vehiculos/', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      }
+    })
+
+    // Si sale bien, cerramos el modal y recargamos el garaje
+    closeCarModal()
+    fetchVehiculos() 
+
+  } catch (error) {
+    console.error("Error al guardar el coche:", error)
+    alert("Hubo un error al guardar el vehículo. Revisa la consola.")
+  }
+}
 
 const handleLogout = () => {
   authStore.logout()
@@ -347,5 +467,107 @@ const goTo = (routeName) => {
 
 .menu-icon {
   font-size: 35px; /* Controla el tamaño de las 3 rayitas */
+}
+
+/* ================================================= */
+/* 🏁 ESTILOS DEL MODAL (OVERLAY Y CAJA)             */
+/* ================================================= */
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.85); /* Fondo oscuro semitransparente */
+  backdrop-filter: blur(5px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000; /* Asegura que se dibuje por encima de todo */
+}
+
+.modal-content {
+  background: var(--panel-bg);
+  padding: 30px;
+  width: 90%;
+  max-width: 500px;
+  border: 5px solid var(--neon-blue); /* Borde neón azul */
+  box-shadow: 12px 12px 0 #000, 0 0 30px rgba(0, 204, 255, 0.3);
+}
+
+.modal-title {
+  font-family: 'Orbitron', sans-serif;
+  color: var(--neon-blue);
+  font-size: 1.8rem;
+  margin-top: 0;
+  margin-bottom: 25px;
+  text-align: center;
+  -webkit-text-stroke: 1px #000;
+  text-shadow: 2px 2px 0 #000;
+}
+
+/* Formularios dentro del modal */
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr; /* Dos columnas para los inputs */
+  gap: 15px;
+}
+
+.upload-group {
+  margin-top: 15px;
+  grid-column: 1 / -1; /* Ocupa todo el ancho */
+}
+
+.file-input {
+  background: #111;
+  color: #fff;
+  padding: 10px;
+  border: 3px solid #000;
+  width: 100%;
+  cursor: pointer;
+  font-family: 'Roboto', sans-serif;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 15px;
+  margin-top: 30px;
+}
+
+/* Botones del modal */
+.cancel-btn, .save-btn {
+  font-family: 'Bangers', cursive;
+  font-size: 1.2rem;
+  padding: 10px 20px;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.cancel-btn {
+  background: #ff3366; /* Rojo para cancelar */
+  color: #fff;
+}
+
+.save-btn {
+  background: var(--neon-green); /* Verde para guardar */
+  color: #000;
+}
+
+.cancel-btn:hover, .save-btn:hover {
+  transform: translate(-3px, -3px);
+}
+
+/* Animación de entrada/salida de Vue */
+.modal-fade-enter-active,
+.modal-fade-leave-active {
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.modal-fade-enter-from,
+.modal-fade-leave-to {
+  opacity: 0;
+  transform: scale(0.95);
 }
 </style>
