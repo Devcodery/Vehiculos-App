@@ -35,6 +35,7 @@ ADMIN_EMAIL = os.getenv("ADMIN_EMAIL", "")
 ADMIN_FULLNAME = os.getenv("ADMIN_FULLNAME", "Admin AutoCare Pro")
 ADMIN_ROLE = os.getenv("ADMIN_ROLE", "admin")
 
+# --- Definicion de variables de entornos
 
 def verify_env_variables():
     missing_vars = []
@@ -76,7 +77,6 @@ def verificar_password(password_plana, password_hasheada_db):
     # Luego comparas ese pre-hash con el hash de bcrypt de la DB
     return pwd_context.verify(pre_hashed, password_hasheada_db)
 
-
 async def get_current_user(token: str = Depends(oauth2_scheme), session: Session = Depends(get_session)):
     try:
         # 1. Decodificamos el JWT con nuestra SECRET_KEY
@@ -97,7 +97,6 @@ async def get_current_user(token: str = Depends(oauth2_scheme), session: Session
         raise HTTPException(status_code=401, detail="Usuario no encontrado")
     
     return user # Devolvemos el objeto usuario completo   
-
 
 # --- LIFESPAN ---
 
@@ -159,6 +158,7 @@ app.add_middleware(
 async def read_root():
     return {"message": "Bienvenido a AutoCare Pro API", "status": "Ready"}
 
+# Iniciar la sesion, sacando el token que generamos y regresando la informacion del usuario logueado
 @app.post("/token")
 async def login(form_data: OAuth2PasswordRequestForm = Depends(), session: Session = Depends(get_session)):
     # 1. Buscar al usuario por email (OAuth2 usa 'username' por defecto)
@@ -175,9 +175,18 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends(), session: Sessi
     
     return {
         "access_token": access_token, 
-        "token_type": "bearer"
+        "token_type": "bearer",
+        "user_data": {
+            "id": user.id,
+            "email": user.email,
+            "nombre": user.nombre,
+            "rol": user.rol
+        }
     }
-    
+
+###############################################################
+#  Sección de crear objetos y guardarlos en la base de datos  #
+###############################################################
 
 @app.post("/usuarios/", response_model=User)
 async def create_user(user: User, session: Session = Depends(get_session), current_user: User = Depends(get_current_user)):
@@ -253,14 +262,6 @@ async def create_vehicle(matricula: str = Form(...),
     session.refresh(vehicle)
     return vehicle
 
-@app.get("/mis-vehiculos/", response_model=list[Vehicle])
-async def list_vehicles(current_user: User = Depends(get_current_user),
-                                session: Session = Depends(get_session)):
-    # Solo buscamos los vehículos donde el user_id coincida con el del Token
-    statement = select(Vehicle).where(Vehicle.user_id == current_user.id)
-    vehiculos = session.exec(statement).all()
-    return vehiculos
-
 @app.post("/productos/")
 async def create_product(marca: str = Form(...),
                             nombre: str = Form(...),
@@ -332,3 +333,15 @@ async def create_revision(revision: Revision,
         "revision": revision,
         "reminder": f"Your next {rev_type.nombre} should be at {next_service_km} km"
     }
+
+########################################################
+#  Sección de extraer informacion de la base de datos  #
+########################################################
+
+@app.get("/mis-vehiculos/", response_model=list[Vehicle])
+async def list_vehicles(current_user: User = Depends(get_current_user),
+                                session: Session = Depends(get_session)):
+    # Solo buscamos los vehículos donde el user_id coincida con el del Token
+    statement = select(Vehicle).where(Vehicle.user_id == current_user.id)
+    vehiculos = session.exec(statement).all()
+    return vehiculos
