@@ -26,14 +26,9 @@
             <Transition name="icon-fade" mode="out-in">
               <span :key="showPassword" class="icon-span">
                 
-                <svg v-if="showPassword" class="icon-svg" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M3.98 8.223A10.477 10.477 0 0 0 1.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.451 10.451 0 0 1 12 4.5c4.756 0 8.773 3.162 10.065 7.498a10.522 10.522 0 0 1-4.293 5.774M6.228 6.228 3 3m3.228 3.228 3.65 3.65m7.894 7.894L21 21m-3.228-3.228-3.65-3.65m0 0a3 3 0 1 0-4.243-4.243m4.242 4.242L9.88 9.88" />
-                </svg>
+                <i v-if="showPassword" class="fa-solid fa-eye-slash icon-svg"></i>
 
-                <svg v-else class="icon-svg" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" />
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
-                </svg>
+                <i v-else class="fa-solid fa-eye icon-svg"></i>
 
               </span>
             </Transition>
@@ -85,9 +80,6 @@ const handleLogin = async () => {
 </script>
 
 <style scoped>
-/* 1. Importamos fuentes de Google: Una muy "Racing" para títulos y otra agresiva de cómic para el resto */
-@import url('https://fonts.googleapis.com/css2?family=Orbitron:ital,wght@0,700;1,900&family=Bangers&family=Roboto:wght@400;500&display=swap');
-
 /* Clase útil global para aplicar el estilo "dibujado a mano" o "cell-shaded" */
 .cell-shaded {
   border: 4px solid #000;
@@ -95,13 +87,6 @@ const handleLogin = async () => {
 }
 
 .login-container {
-  /* Variables de color de nuestro diseño comic-gamberro */
-  --neon-yellow: #fff200;
-  --neon-blue: #00ccff;
-  --neon-pink: #ff00ff;
-  --dark-bg: #0b0c10;
-  --panel-bg: rgba(15, 20, 25, 0.9);
-
   display: flex;
   justify-content: center;
   align-items: center;
@@ -211,13 +196,12 @@ input:focus {
   justify-content: center;
 }
 
-/* Adaptamos los iconos SVG para que se vean bien y más "sucios" */
+/* Adaptamos la clase para FontAwesome */
 .icon-svg {
-  width: 24px;
-  height: 24px;
+  font-size: 20px; /* Controla el tamaño del ojo */
   color: #999;
   transition: color 0.3s ease;
-  filter: drop-shadow(2px 2px 0 #000);
+  filter: drop-shadow(2px 2px 0 #000); /* Mantiene la sombra dura de cómic */
 }
 
 .toggle-btn:hover .icon-svg {
