@@ -16,18 +16,18 @@
             </div>
 
             <div class="input-group">
-              <label for="costo_servicio" class="label-form">Cada cuantos kilometros:</label>
-              <input id="costo_servicio" v-model="serviceTypeForm.cada_cuantos_Km" type="number" step="0" class="input-form" required min="0" placeholder="Ej: 10000">
+              <label for="cada_cuantos_km_servicio" class="label-form">Cada cuantos kilometros:</label>
+              <input id="cada_cuantos_km_servicio" v-model="serviceTypeForm.cada_cuantos_Km" type="number" class="input-form" required min="0" placeholder="Ej: 10000">
             </div>
             
             <div class="input-group">
-              <label for="costo_servicio" class="label-form">Cada cuantos meses:</label>
-              <input id="costo_servicio" v-model="serviceTypeForm.cada_cuantos_Meses" type="number" step="0" class="input-form" required min="0" placeholder="Ej: 12">
+              <label for="cada_cuantos_meses_servicio" class="label-form">Cada cuantos meses:</label>
+              <input id="cada_cuantos_meses_servicio" v-model="serviceTypeForm.cada_cuantos_Meses" type="number" class="input-form" required min="0" placeholder="Ej: 12">
             </div>
 
             <div class="input-group" style="grid-column: 1 / -1;">
-              <label for="descripcion_servicio" class="label-form">Detalles:</label>
-              <textarea id="descripcion_servicio" v-model="serviceTypeForm.detalles " rows="3" class="input-form" placeholder="Describe los detalles del mantenimiento o reparación..."></textarea>
+              <label for="detalle_tipo_servicio" class="label-form">Detalles:</label>
+              <textarea id="detalle_tipo_servicio" v-model="serviceTypeForm.detalles " rows="3" class="input-form" placeholder="Describe los detalles del mantenimiento o reparación..."></textarea>
             </div>
           </div>
 
@@ -54,29 +54,28 @@ const emit = defineEmits(['close', 'refreshServices'])
 
 const serviceTypeForm = ref({
   nombre: '',
+  detalles: '',
   cada_cuantos_Km: '',
   cada_cuantos_Meses: '',
-  detalles: ''
 })
 
 const saveService = async () => {
   try {
     const payload = {
       nombre: serviceTypeForm.value.nombre,
+      detalles: serviceTypeForm.value.detalles || '',
       cada_cuantos_Km: serviceTypeForm.value.cada_cuantos_Km,
-      cada_cuantos_Meses: serviceTypeForm.value.cada_cuantos_Km,
-      descripcion: serviceTypeForm.value.descripcion || ''
+      cada_cuantos_Meses: serviceTypeForm.value.cada_cuantos_Meses,
     }
 
-    // Asegúrate de que la ruta coincida con tu backend (ej: /servicios/)
-    await api.post('/servicios/', payload)
+    await api.post('/tipos-revision/', payload)
 
     emit('refreshServices')
     emit('close')
 
   } catch (error) {
-    console.error("Error al guardar el servicio:", error)
-    alert("Hubo un error al guardar el servicio. Revisa la consola.")
+    console.error("Error al guardar el tipo de servicio:", error)
+    alert("Hubo un error al guardar el tipo de servicio. Revisa la consola.")
   }
 }
 </script>
