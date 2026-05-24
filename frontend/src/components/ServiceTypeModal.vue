@@ -11,18 +11,18 @@
           <div class="form-grid">
             
             <div class="input-group">
-              <label for="nombre_servicio" class="label-form">Nombre del Servicio:</label>
-              <input id="nombre_servicio" v-model="serviceTypeForm.nombre" type="text" class="input-form" required placeholder="Ej: Cambio de Aceite">
+              <label for="nombre_tipo_servicio" class="label-form">Nombre del Servicio:</label>
+              <input id="nombre_tipo_servicio" v-model="serviceTypeForm.nombre" type="text" class="input-form" required placeholder="Ej: Cambio de Aceite">
             </div>
 
             <div class="input-group">
-              <label for="cada_cuantos_km_servicio" class="label-form">Cada cuantos kilometros:</label>
-              <input id="cada_cuantos_km_servicio" v-model="serviceTypeForm.cada_cuantos_Km" type="number" class="input-form" required min="0" placeholder="Ej: 10000">
+              <label for="cada_cuantos_km_tipo_servicio" class="label-form">Cada cuantos kilometros:</label>
+              <input id="cada_cuantos_tipo_km_servicio" v-model="serviceTypeForm.cada_cuantos_Km" type="number" class="input-form" required min="0" placeholder="Ej: 10000">
             </div>
             
             <div class="input-group">
-              <label for="cada_cuantos_meses_servicio" class="label-form">Cada cuantos meses:</label>
-              <input id="cada_cuantos_meses_servicio" v-model="serviceTypeForm.cada_cuantos_Meses" type="number" class="input-form" required min="0" placeholder="Ej: 12">
+              <label for="cada_cuantos_meses_tipo_servicio" class="label-form">Cada cuantos meses:</label>
+              <input id="cada_cuantos_meses_tipo_servicio" v-model="serviceTypeForm.cada_cuantos_Meses" type="number" class="input-form" required min="0" placeholder="Ej: 12">
             </div>
 
             <div class="input-group" style="grid-column: 1 / -1;">

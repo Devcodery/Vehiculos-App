@@ -68,7 +68,7 @@
               <p class="tile-desc">Gestión de inventario de repuestos y consumibles.</p>
             </button>
 
-            <button class="tile-btn cell-shaded" @click="">
+            <button class="tile-btn cell-shaded" @click="openServiceModal">
               <i class="fa-solid fa-wrench tile-icon"></i>
               <h3 class="tile-title">AGREGAR SERVICIO</h3>
               <p class="tile-desc">Creación de órdenes de trabajo y mantenimientos.</p>
@@ -101,6 +101,11 @@
     v-if="showServiceTypeModal"
     @close="showServiceTypeModal = false">
     </ServiceTypeModal>
+
+    <ServiceModal
+    v-if="showServiceModal"
+    @close="showServiceModal = false">
+  </ServiceModal>
   </div>
 </template>
 
@@ -112,6 +117,7 @@ import api from '@/services/api'
 import CarModal from '@/components/CarModal.vue'
 import ProductModal from '@/components/ProductModal.vue'
 import ServiceTypeModal from '@/components/ServiceTypeModal.vue'
+import ServiceModal from '@/components/ServiceModal.vue'
 
 const authStore = useAuthStore()
 const router = useRouter()
@@ -120,6 +126,7 @@ const cars = ref([])
 const showCarModal = ref(false)
 const showProductoModal = ref(false)
 const showServiceTypeModal = ref(false)
+const showServiceModal = ref(false)
 
 // Funcion para extraer los vehiculos del usuario de la base de datos
 const fetchVehiculos = async () => {
@@ -148,8 +155,13 @@ const openCarModal = () => {
 const openProductModal = () => {
   showProductoModal.value = true
 }
+
 const openServiceTypeModal = () => {
   showServiceTypeModal.value = true
+}
+
+const openServiceModal = () => {
+  showServiceModal.value = true
 }
 
 const handleLogout = () => {
