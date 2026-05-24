@@ -7,13 +7,14 @@ from sqlmodel import Session, select
 from database import create_db_and_tables, get_session, engine
 from passlib.context import CryptContext
 import hashlib
-from models import User, Vehicle, Product, RevisionType, Revision
+from models import User, Vehicle, Product, RevisionType, Revision, RevisionProducts
 from datetime import datetime, timedelta, timezone
 from jose import JWTError, jwt
 import os
 from dotenv import load_dotenv
 import shutil
-from typing import Optional
+from typing import Optional, List
+from pydantic import BaseModel
 
 
 load_dotenv()
@@ -171,13 +172,13 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends(), session: Sessi
     if not verificar_password(form_data.password, user.password_hash):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Credenciales invalidas")
     
-    access_token = create_access_token(data={"sub": user.email, "id": user.id})
+    access_token = create_access_token(data={"sub": user.email, "id": user.user_id})
     
     return {
         "access_token": access_token, 
         "token_type": "bearer",
         "user_data": {
-            "id": user.id,
+            "id": user.user_id,
             "email": user.email,
             "nombre": user.nombre,
             "rol": user.rol
@@ -223,13 +224,13 @@ async def create_vehicle(matricula: str = Form(...),
                             session: Session = Depends(get_session),
                             current_user: User = Depends(get_current_user)):
     
-    user_id = current_user.id
+    user_id = current_user.user_id
     db_path = None
     
     if archivo_foto:
         # Guardamos la foto en el servidor
         
-        user_subfolder = f"vehicles/user{current_user.id}"
+        user_subfolder = f"vehicles/user{current_user.user_id}"
         destination_folder = os.path.join(MEDIA_ROOT, user_subfolder)
         os.makedirs(destination_folder, exist_ok=True)
         
@@ -302,36 +303,72 @@ async def create_revision_type(revision_type: RevisionType,
     session.refresh(revision_type)
     return revision_type
 
-@app.post("/revisiones/")
-async def create_revision(revision: Revision,
-                            current_user: User = Depends(get_current_user),
-                            session: Session = Depends(get_session)):
+# --- ESQUEMAS PARA RECIBIR DATOS DESDE VUE ---
+
+class ProductoUtilizadoIn(BaseModel):
+    producto_id: int
+    cantidad: int
+
+class RevisionCreateIn(BaseModel):
+    vehiculo_id: str # Es str porque tu clave primaria es la matrícula
+    tipo_revision_id: int
+    kilometro_servicio: int
+    precio: Optional[float] = None
+    nota: Optional[str] = None
+    productos_utilizados: List[ProductoUtilizadoIn] = []
     
-    # Verify vehicle ownership
+@app.post("/revisiones/")
+async def create_revision(revision_data: RevisionCreateIn,
+                          current_user: User = Depends(get_current_user),
+                          session: Session = Depends(get_session)):
+    
+    # 1. Verificamos que el coche es de este usuario
     vehicle = session.exec(
-        select(Vehicle).where(Vehicle.matricula == revision.vehiculo_id, Vehicle.user_id == current_user.id)
+        select(Vehicle).where(Vehicle.matricula == revision_data.vehiculo_id, Vehicle.user_id == current_user.user_id)
     ).first()
     
     if not vehicle:
-        raise HTTPException(status_code=404, detail="Vehicle not found or access denied")
+        raise HTTPException(status_code=404, detail="Vehículo no encontrado o acceso denegado")
 
-    # Get revision type for km calculation
-    rev_type = session.get(RevisionType, revision.tipo_revision_id)
+    # 2. Buscamos el tipo de revisión para calcular el próximo servicio
+    rev_type = session.get(RevisionType, revision_data.tipo_revision_id)
     if not rev_type:
-        raise HTTPException(status_code=404, detail="Revision type not found")
+        raise HTTPException(status_code=404, detail="Tipo de revisión no encontrado")
 
-    session.add(revision)
+    # 3. CREAMOS LA REVISIÓN REAL
+    nueva_revision = Revision(
+        vehiculo_id=revision_data.vehiculo_id,
+        tipo_revision_id=revision_data.tipo_revision_id,
+        kilometro_servicio=revision_data.kilometro_servicio,
+        precio=revision_data.precio,
+        nota=revision_data.nota
+    )
     
-    # Logic: Calculate next service reminder
-    next_service_km = revision.kilometro_servicio + rev_type.cada_cuantos_Km
-    
+    session.add(nueva_revision)
     session.commit()
-    session.refresh(revision)
+    session.refresh(nueva_revision) # Aquí Postgres le asigna su revision_id
+    
+    # 4. AÑADIMOS LOS PRODUCTOS A LA TABLA INTERMEDIA
+    if revision_data.productos_utilizados:
+        for prod in revision_data.productos_utilizados:
+            # Creamos la fila que une la revisión con el producto y su cantidad
+            link = RevisionProducts(
+                revision_id=nueva_revision.revision_id,
+                producto_id=prod.producto_id,
+                cantidad=prod.cantidad
+            )
+            session.add(link)
+        
+        # Guardamos todos los productos vinculados
+        session.commit()
+    
+    # Lógica: Calcular próximo servicio
+    next_service_km = nueva_revision.kilometro_servicio + rev_type.cada_cuantos_Km
     
     return {
-        "message": "Revision recorded successfully",
-        "revision": revision,
-        "reminder": f"Your next {rev_type.nombre} should be at {next_service_km} km"
+        "message": "Revisión registrada con éxito",
+        "revision_id": nueva_revision.revision_id,
+        "reminder": f"Tu próximo/a {rev_type.nombre} debería ser a los {next_service_km} km"
     }
 
 ########################################################
@@ -340,8 +377,24 @@ async def create_revision(revision: Revision,
 
 @app.get("/mis-vehiculos/", response_model=list[Vehicle])
 async def list_vehicles(current_user: User = Depends(get_current_user),
-                                session: Session = Depends(get_session)):
+                            session: Session = Depends(get_session)):
     # Solo buscamos los vehículos donde el user_id coincida con el del Token
-    statement = select(Vehicle).where(Vehicle.user_id == current_user.id)
+    statement = select(Vehicle).where(Vehicle.user_id == current_user.user_id)
     vehiculos = session.exec(statement).all()
     return vehiculos
+
+@app.get("/mis-tipos-revisiones/", response_model=list[RevisionType])
+async def list_revision_type(current_user: User = Depends(get_current_user),
+                                session: Session = Depends(get_session)):
+    statement = select(RevisionType).where(RevisionType.tipo_revision_id == current_user.user_id)
+    
+    revision_type = session.exec(statement).all()
+    return revision_type
+
+@app.get("/productos/", response_model=list[Product])
+async def list_products(current_user: User = Depends(get_current_user),
+                            session: Session = Depends(get_session)):
+    statement = select(Product)
+    
+    products = session.exec(statement)
+    return products
