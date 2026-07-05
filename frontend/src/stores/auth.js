@@ -18,7 +18,7 @@ export const useAuthStore = defineStore('auth', {
         formData.append('username', email)
         formData.append('password', password)
 
-        const response = await api.post('/token', formData)
+        const response = await api.post('/auth/token', formData)
         this.token = response.data.access_token
         this.user = response.data.user_data
 
