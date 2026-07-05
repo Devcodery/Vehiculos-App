@@ -103,7 +103,7 @@ const saveService = async () => {
 }
 .cancel-btn { background: #ff3366; color: #fff; }
 
-/* 🚀 Botón de guardar en Rosa Neón para hacer juego con el menú de comandos */
+/*Botón de guardar en Rosa Neón para hacer juego con el menú de comandos */
 .save-btn { background: var(--neon-pink); color: #000; }
 
 .cancel-btn:hover, .save-btn:hover { transform: translate(-3px, -3px); }
