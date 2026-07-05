@@ -43,6 +43,8 @@ class Product(SQLModel, table=True):
     nombre: str
     detalles: Optional[str] = None
     imagen: Optional[str] = None # Ruta de la foto del producto
+    referencia: Optional[str] = None
+    categoria: Optional[str] = None
     
     revisiones: List["Revision"] = Relationship(
         back_populates="products",
