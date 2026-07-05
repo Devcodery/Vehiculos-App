@@ -1,4 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
+import HomeView from '../views/HomeView.vue'
+import LoginView from '../views/LoginView.vue'
+import RegistroUsuariosView from '../views/RegistroUsuariosView.vue'
 import { useAuthStore } from '@/stores/auth'
 
 const router = createRouter({
@@ -6,26 +9,41 @@ const router = createRouter({
   routes: [
     {
       path: '/login',
-      name: 'login',
-      component: () => import('@/views/LoginView.vue')
+      name: 'Login',
+      component: LoginView
     },
     {
       path: '/',
-      name: 'home',
-      component: () => import('@/views/HomeView.vue'),
-      meta: { requiresAuth: true } // Solo si estás logueado
+      name: 'Home',
+      component: HomeView,
+      meta: { requiresAuth: true }
+    },
+    {
+      path: '/registro-usuarios',
+      name: 'RegistroUsuarios',
+      component: RegistroUsuariosView,
+      meta: { requiresAuth: true, requiresAdmin: true }
     }
   ]
 })
 
 // El "Guarda" del Router: si no hay token, te manda al login
 router.beforeEach((to, from, next) => {
-  const auth = useAuthStore()
-  if (to.meta.requiresAuth && !auth.isAuthenticated) {
-    next('/login')
-  } else {
-    next()
+  const authStore = useAuthStore()
+  
+  // A. Si la ruta requiere estar logueado y no lo estás -> Al Login
+  if (to.meta.requiresAuth && !authStore.isAuthenticated) {
+    return next('/login')
   }
+
+  // B. Si la ruta es solo para ADMINS y tu rol es otro -> Te mandamos al garaje
+  if (to.meta.requiresAdmin && authStore.user?.rol !== 'admin') {
+    alert("Acceso denegado: Solo para administradores.")
+    return next('/')
+  }
+
+  // C. Si todo está bien, pasa
+  next()
 })
 
 export default router
