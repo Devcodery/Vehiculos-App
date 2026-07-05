@@ -1,8 +1,9 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import HomeView from '../views/HomeView.vue'
-import LoginView from '../views/LoginView.vue'
-import RegistroUsuariosView from '../views/RegistroUsuariosView.vue'
+import HomeView from '@/views/HomeView.vue'
+import LoginView from '@/views/LoginView.vue'
+import RegistroUsuariosView from '@/views/RegistroUsuariosView.vue'
 import { useAuthStore } from '@/stores/auth'
+import MiCuentaView from '@/views/MiCuentaView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -23,6 +24,12 @@ const router = createRouter({
       name: 'RegistroUsuarios',
       component: RegistroUsuariosView,
       meta: { requiresAuth: true, requiresAdmin: true }
+    },
+    {
+      path: '/mi-cuenta',
+      name: 'MiCuenta',
+      component: MiCuentaView,
+      meta: {requiresAuth: true}
     }
   ]
 })
