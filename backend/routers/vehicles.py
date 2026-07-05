@@ -75,7 +75,7 @@ async def list_vehicles(current_user: User = Depends(get_current_user),
 
 @router.patch("/{vehiculo_id}")
 def actualizar_vehiculo(
-    vehiculo_id: int, 
+    vehiculo_id: str, 
     data: VehicleUpdate, 
     session: Session = Depends(get_session)
 ):
