@@ -50,7 +50,7 @@ async def lifespan(app: FastAPI):
             session.add(admin_user)
             session.commit()
         else:
-            print("👍 La base de datos ya contiene usuarios.")
+            print("La base de datos ya contiene usuarios.")
     
     yield  # Aquí es donde la aplicación "vive" y atiende peticiones
     
