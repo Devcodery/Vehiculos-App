@@ -104,7 +104,8 @@ async def cambiar_mi_password(
     
     background_tasks.add_task(
         enviar_correo_real, 
-        destinatario=current_user.email, 
+        email_destinatario=current_user.email,
+        nombre_destinatario=current_user.nombre,
         asunto="Cambio de Contraseña - AutoCare", 
         cuerpo_html=cuerpo_del_correo
     )
