@@ -1,22 +1,6 @@
 <template>
   <div class="dashboard-wrapper">
 
-    <header class="top-nav cell-shaded">
-     <div class="nav-left">
-        <button class="hamburger-btn">
-          <i class="fa-solid fa-bars menu-icon"></i>
-        </button>
-      </div>
-      <div class="nav-center">
-        <h1 class="brand-title">AutoCare</h1>
-      </div>
-      <div class="nav-right">
-        <button @click="handleLogout" class="logout-btn cell-shaded">
-          SALIR <i class="fa-solid fa-power-off"></i>
-        </button>
-      </div>
-    </header>
-
     <main class="main-content">
       <div class="welcome-banner cell-shaded">
         <h2>Bienvenido, <span class="highlight">{{ authStore.user?.nombre || 'Piloto' }}</span></h2>
@@ -28,22 +12,30 @@
           <h3 class="column-title">Mi Garaje</h3>
 
           <div class="cars-list">
-            
-            <div 
-              v-for="car in cars" 
-              :key="car.matricula" 
-              class="car-card cell-shaded"
-            >
+
+            <div v-for="car in cars" :key="car.matricula" class="car-card cell-shaded">
               <div class="car-info">
                 <h4>
-                  {{ car.marca }} {{ car.modelo }} 
+                  {{ car.marca }} {{ car.modelo }}
                   <span v-if="car.alias">/ {{ car.alias }}</span>
                 </h4>
                 <p>Matrícula: <strong>{{ car.matricula }}</strong></p>
               </div>
+
+              <div class="km-section cell-shaded-inner">
+                <div class="km-display">
+                  <i class="fa-solid fa-gauge-high"></i>
+                  <span class="km-number">{{ car.kilometraje }}</span> km
+                </div>
+
+                <button @click="abrirModalKilometraje(car)" class="btn-update-km cell-shaded">
+                  <i class="fa-solid fa-pen"></i> Actualizar
+                </button>
+              </div>
+
               <button class="view-btn cell-shaded">Ver</button>
             </div>
-            
+
             <div v-if="cars.length === 0" class="car-card cell-shaded" style="justify-content: center; color: #aaa;">
               <p>Tu garaje está vacío. ¡Añade tu primer auto!</p>
             </div>
@@ -86,26 +78,24 @@
       </div>
     </main>
 
-    <CarModal 
-      v-if="showCarModal"
-      @close="showCarModal = false"
-      @refresh-garage="fetchVehiculos">
+    <CarModal v-if="showCarModal" @close="showCarModal = false" @refresh-garage="fetchVehiculos">
     </CarModal>
 
-    <ProductModal
-      v-if="showProductoModal"
-      @close="showProductoModal = false">
+    <ProductModal v-if="showProductoModal" @close="showProductoModal = false">
     </ProductModal>
 
-    <ServiceTypeModal
-    v-if="showServiceTypeModal"
-    @close="showServiceTypeModal = false">
+    <ServiceTypeModal v-if="showServiceTypeModal" @close="showServiceTypeModal = false">
     </ServiceTypeModal>
 
-    <ServiceModal
-    v-if="showServiceModal"
-    @close="showServiceModal = false">
-  </ServiceModal>
+    <ServiceModal v-if="showServiceModal" @close="showServiceModal = false">
+    </ServiceModal>
+
+    <UpdateKmModal 
+      :show="showKmModal" 
+      :car="cocheSeleccionadoParaKm"
+      @close="showKmModal = false"
+      @save="procesarNuevoKm"
+    />
   </div>
 </template>
 
@@ -118,6 +108,7 @@ import CarModal from '@/components/CarModal.vue'
 import ProductModal from '@/components/ProductModal.vue'
 import ServiceTypeModal from '@/components/ServiceTypeModal.vue'
 import ServiceModal from '@/components/ServiceModal.vue'
+import UpdateKmModal from '@/components/UpdateKmModal.vue'
 
 const authStore = useAuthStore()
 const router = useRouter()
@@ -127,16 +118,51 @@ const showCarModal = ref(false)
 const showProductoModal = ref(false)
 const showServiceTypeModal = ref(false)
 const showServiceModal = ref(false)
+const showKmModal = ref(false)
+const cocheSeleccionadoParaKm = ref(null)
+
 
 // Funcion para extraer los vehiculos del usuario de la base de datos
 const fetchVehiculos = async () => {
   try {
     // Peticion a la ruta
-    const response = await api.get('/mis-vehiculos/')
+    const response = await api.get('/vehiculos/')
 
     cars.value = response.data
-  }catch(error){
+  } catch (error) {
     console.error('Error al cargar el garaje:', error)
+  }
+}
+
+const enviarParcheVehiculo = async (idIdentificador, datosCambiados) => {
+  try {
+    // Mandamos solo los datos que vengan en el objeto 'datosCambiados'
+    const response = await api.patch(`/vehiculos/${idIdentificador}`, datosCambiados)
+    return { success: true, data: response.data }
+  } catch (error) {
+    console.error("Error al actualizar el vehículo:", error)
+    // Mostramos un error genérico (o puedes personalizarlo leyendo error.response)
+    alert("❌ Error de comunicación con el servidor.")
+    return { success: false }
+  }
+}
+
+const abrirModalKilometraje = (car) => {
+  cocheSeleccionadoParaKm.value = car // Guardamos a qué coche le vamos a cambiar el KM
+  showKmModal.value = true            // Mostramos la ventana brutalista
+}
+
+const procesarNuevoKm = async (nuevoKmValor) => {
+  const coche = cocheSeleccionadoParaKm.value
+  const idCoche = coche.id || coche.matricula 
+  
+  const resultado = await enviarParcheVehiculo(idCoche, { kilometraje: nuevoKmValor })
+
+  if (resultado.success) {
+    coche.kilometraje = nuevoKmValor // Actualizamos la tarjeta en vivo
+    showKmModal.value = false        // Cerramos el modal
+  } else {
+    alert("❌ Error al guardar en la base de datos.")
   }
 }
 
@@ -164,15 +190,6 @@ const openServiceModal = () => {
   showServiceModal.value = true
 }
 
-const handleLogout = () => {
-  authStore.logout()
-  router.push('/login')
-}
-
-const goTo = (routeName) => {
-  console.log(`Navegando a: ${routeName}`)
-  router.push({ name: routeName })
-}
 </script>
 
 <style scoped>
@@ -182,67 +199,6 @@ const goTo = (routeName) => {
   padding: 20px;
 }
 
-/* --- HEADER --- */
-.top-nav {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  background: var(--panel-bg);
-  padding: 15px 30px;
-  margin-bottom: 30px;
-}
-
-.nav-left {
-  display: flex;
-  align-items: center;
-  gap: 20px;
-}
-
-.brand-title {
-  font-family: 'Orbitron', sans-serif;
-  font-style: italic;
-  font-size: 3rem;
-  color: var(--neon-blue);
-  margin: 0;
-  -webkit-text-stroke: 1.5px #000;
-  text-shadow: 3px 3px 0 #000;
-}
-
-.hamburger-btn {
-  background: none;
-  border: none;
-  color: #00ff66;
-  cursor: pointer;
-  padding: 5px;
-  transition: transform 0.2s;
-}
-
-.hamburger-btn:hover {
-  transform: scale(1.1);
-}
-
-.icon-svg {
-  width: 35px;
-  height: 35px;
-}
-
-.logout-btn {
-  background: var(--neon-pink);
-  color: #000;
-  font-family: 'Bangers', cursive;
-  font-size: 1.2rem;
-  padding: 8px 20px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  transition: transform 0.2s;
-}
-
-.logout-btn:hover {
-  transform: translate(-3px, -3px);
-  box-shadow: 9px 9px 0 #000, 0 0 15px rgba(255, 0, 255, 0.6);
-}
 
 /* --- WELCOME BANNER --- */
 .welcome-banner {
@@ -296,12 +252,11 @@ const goTo = (routeName) => {
 }
 
 .car-card {
-  background: var(--panel-bg);
-  padding: 15px 20px;
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  transition: transform 0.2s;
+  flex-direction: column; 
+  gap: 15px; /* Crea un espacio uniforme entre el título, la caja de KM y el botón */
+  padding: 20px;
+  /* Mantén aquí tus reglas actuales de background, border y box-shadow */
 }
 
 .car-card:hover {
@@ -311,10 +266,10 @@ const goTo = (routeName) => {
 
 .car-info h4 {
   font-family: 'Orbitron', sans-serif;
-  color: var(--neon-blue);
   margin: 0 0 5px 0;
-  font-size: 1.2rem;
-  text-shadow: 1px 1px 0 #000;
+  font-size: 1.4rem;
+  color: #00e5ff;
+  text-shadow: 1px 1px 0px #000;
 }
 
 .car-info p {
@@ -324,13 +279,13 @@ const goTo = (routeName) => {
 }
 
 .view-btn {
-  background: var(--dark-bg);
-  color: #fff;
-  font-family: 'Roboto', sans-serif;
-  font-weight: bold;
-  padding: 8px 15px;
-  cursor: pointer;
-  transition: background 0.2s;
+  width: 100%;
+  margin-top: auto; /* Empuja el botón al fondo si la tarjeta crece */
+  padding: 10px;
+  font-family: 'Bangers', cursive;
+  font-size: 1.2rem;
+  text-transform: uppercase;
+  /* Mantén aquí tus reglas de color y bordes para este botón */
 }
 
 .view-btn:hover {
@@ -339,7 +294,7 @@ const goTo = (routeName) => {
 }
 
 /* ================================================= */
-/* 🎨 BOTONES TIPO "TILE" (INSPIRADOS EN LA IMAGEN)  */
+/* BOTONES TIPO "TILE" (INSPIRADOS EN LA IMAGEN)  */
 /* ================================================= */
 .action-grid {
   display: grid;
@@ -366,7 +321,8 @@ const goTo = (routeName) => {
 }
 
 .tile-icon {
-  font-size: 50px; /* Al ser una fuente, el tamaño se cambia con font-size */
+  font-size: 50px;
+  /* Al ser una fuente, el tamaño se cambia con font-size */
   color: var(--neon-pink);
   margin-bottom: 20px;
   filter: drop-shadow(2px 2px 0px #000);
@@ -393,6 +349,51 @@ const goTo = (routeName) => {
 }
 
 .menu-icon {
-  font-size: 35px; /* Controla el tamaño de las 3 rayitas */
+  font-size: 35px;
+  /* Controla el tamaño de las 3 rayitas */
+}
+
+.km-section {
+  display: flex;
+  justify-content: space-between; /* Número a la izquierda, botón a la derecha */
+  align-items: center;
+  flex-wrap: wrap; /* Si la pantalla es muy pequeña, el botón baja a la siguiente línea */
+  gap: 10px;
+  
+  background: rgba(0, 0, 0, 0.4);
+  border: 2px dashed #555; /* Estilo industrial para separar del resto */
+  padding: 12px 15px;
+}
+
+.km-display {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #00e5ff;
+  font-family: 'Orbitron', sans-serif;
+  font-size: 1.1rem;
+}
+
+.km-number {
+  font-size: 1.8rem;
+  font-weight: bold;
+  letter-spacing: 2px; /* Un poco de aire entre los números digitales */
+}
+
+.btn-update-km {
+  background: #ffcc00;
+  color: #000;
+  border: 3px solid #000;
+  font-family: 'Bangers', cursive;
+  padding: 6px 12px;
+  font-size: 1.1rem;
+  cursor: pointer;
+  transition: transform 0.1s;
+  box-shadow: 3px 3px 0 #000;
+}
+
+.btn-update-km:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: 5px 5px 0 #000;
 }
 </style>
