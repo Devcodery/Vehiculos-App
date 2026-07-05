@@ -20,6 +20,27 @@
               <input id="nombre_prod" v-model="productForm.nombre" type="text" class="input-form" required placeholder="Ej: Aceite Sintético 5W-30">
             </div>
 
+            <div class="input-group">
+              <label for="referencia_prod" class="label-form">Referencia / Código:</label>
+              <input id="referencia_prod" v-model="productForm.referencia" type="text" class="input-form" placeholder="Ej: BR-9902">
+            </div>
+
+            <div class="input-group">
+              <label for="categoria_prod" class="label-form">Categoría:</label>
+              <select id="categoria_prod" v-model="productForm.categoria" class="input-form select-form" required>
+                <option value="" disabled>Selecciona una categoría...</option>
+                <option value="Aceites y Fluidos">Aceites y Fluidos</option>
+                <option value="Filtros">Filtros</option>
+                <option value="Frenos">Frenos</option>
+                <option value="Motor y Escape">Motor y Escape</option>
+                <option value="Suspensión y Dirección">Suspensión y Dirección</option>
+                <option value="Baterías y Electricidad">Baterías y Electricidad</option>
+                <option value="Neumáticos y Llantas">Neumáticos y Llantas</option>
+                <option value="Herramientas y Consumibles">Herramientas y Consumibles</option>
+                <option value="Otras Piezas">Otras Piezas</option>
+              </select>
+            </div>
+
             <div class="input-group" style="grid-column: 1 / -1;">
               <label for="detalles_prod" class="label-form">Detalles (Opcional):</label>
               <textarea id="detalles_prod" v-model="productForm.detalles" rows="3" class="input-form" placeholder="Especificaciones, cantidad, compatibilidad..."></textarea>
@@ -55,6 +76,8 @@ const emit = defineEmits(['close', 'refreshProducts'])
 const productForm = ref({
   marca: '',
   nombre: '',
+  referencia: '',
+  categoria: '',
   detalles: '',
   imagen: null
 })
@@ -77,6 +100,13 @@ const saveProduct = async () => {
     formData.append('nombre', productForm.value.nombre)
     formData.append('detalles', productForm.value.detalles || '') 
     
+    if (productForm.value.referencia) {
+      formData.append('referencia', productForm.value.referencia)
+    }
+    if (productForm.value.categoria) {
+      formData.append('categoria', productForm.value.categoria)
+    }
+
     if (productForm.value.imagen) {
       formData.append('archivo_foto', productForm.value.imagen)
     }
@@ -176,16 +206,18 @@ label, .label-form {
     margin: 0.35em;
 }
 
-.input-form, .file-input {
+.input-form, .file-input, .select-form {
     padding: 10px 12px !important;
     background: #000 !important;
     color: #ffffff !important;
     border: 2px solid #fff !important;
     outline: none !important;
     transition: border-color 0.2s ease;
+    width: 100%;
+    box-sizing: border-box;
 }
 
-.input-form:focus, .file-input:focus {
+.input-form:focus, .file-input:focus, .select-form:focus {
     border-color: #00e5ff !important;
 }
 
