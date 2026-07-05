@@ -87,7 +87,7 @@ const ejecutarLogout = () => {
     width: 320px;
     height: 100vh;
     background: #1a1a1a;
-    border-right: 6px solid #ffcc00;
+    border-right: 6px solid #ff00ff;
     z-index: 1001;
     display: flex;
     flex-direction: column;
@@ -107,7 +107,7 @@ const ejecutarLogout = () => {
     justify-content: space-between;
     align-items: center;
     padding: 20px;
-    background: #ffcc00;
+    background: #ff00ff;
     border-bottom: 4px solid #000;
 }
 
