@@ -126,7 +126,7 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr v-for="srv in historialVehiculo" :key="srv.revision_id">
+                                <tr v-for="srv in historialVehiculo" :key="srv.revision_id" class="clickable-row" @click="verDetalle(srv)">
                                     <td><span class="type-tag">{{ srv.tipo_revision_nombre || 'Mantenimiento' }}</span>
                                     </td>
                                     <td class="table-km">{{ srv.kilometro_servicio }} km</td>
@@ -146,6 +146,12 @@
             </section>
 
         </div>
+
+        <ServiceDetailsModal 
+            :show="showDetailsModal" 
+            :service="selectedService" 
+            @close="showDetailsModal = false" 
+        />
     </div>
 </template>
 
@@ -153,6 +159,15 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import api from '@/services/api'
+import ServiceDetailsModal from '@/components/ServiceDetailsModal.vue'
+
+const showDetailsModal = ref(false)
+const selectedService = ref(null)
+
+const verDetalle = (srv) => {
+    selectedService.value = srv
+    showDetailsModal.value = true
+}
 
 const route = useRoute()
 const cocheId = route.params.id 
@@ -749,5 +764,14 @@ label,
     color: #444;
     margin-bottom: 10px;
     display: block;
+}
+
+.clickable-row {
+    cursor: pointer;
+    transition: background-color 0.15s ease;
+}
+
+.clickable-row:hover {
+    background-color: rgba(255, 0, 255, 0.15) !important;
 }
 </style>
