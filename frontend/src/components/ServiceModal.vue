@@ -97,12 +97,10 @@ import api from '@/services/api'
 
 const emit = defineEmits(['close', 'refreshServices'])
 
-// --- ESTADOS PARA LOS DESPLEGABLES ---
 const vehiculos = ref([])
 const tiposRevision = ref([])
 const catalogoProductos = ref([])
 
-// --- ESTADO DEL FORMULARIO PRINCIPAL ---
 const serviceForm = ref({
   vehiculo_id: '',
   tipo_revision_id: '',
@@ -111,14 +109,12 @@ const serviceForm = ref({
   nota: ''
 })
 
-// --- ESTADO DINÁMICO DE PRODUCTOS ---
 const selectedProducts = ref([])
 
 const cerrar = () => {
   emit('close')
 }
 
-// Función para cargar datos al abrir el modal
 const fetchDropdownData = async () => {
   try {
     const [vehiculosRes, tiposRes, productosRes] = await Promise.all([
@@ -135,7 +131,6 @@ const fetchDropdownData = async () => {
   }
 }
 
-// Funciones para manejar las filas de productos
 const addProductRow = () => {
   selectedProducts.value.push({ producto_id: '', cantidad: 1 })
 }
@@ -144,12 +139,10 @@ const removeProductRow = (index) => {
   selectedProducts.value.splice(index, 1)
 }
 
-// Ejecutar la carga de datos al montar el componente
 onMounted(() => {
   fetchDropdownData()
 })
 
-// Enviar datos a FastAPI
 const saveService = async () => {
   try {
     const payload = {
@@ -235,10 +228,10 @@ const saveService = async () => {
   color: #ff00ff;
 }
 
-/* Rejilla principal */
+
 .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; } 
 
-/* --- ZONA DE PRODUCTOS --- */
+
 .products-section {
   background: #1a1a1a;
   border: 3px dashed #444;
@@ -270,7 +263,7 @@ const saveService = async () => {
   text-align: center; color: #666; font-style: italic; margin: 10px 0 0 0; font-size: 0.9rem;
 }
 
-/* --- BOTONES INFERIORES --- */
+
 .modal-actions { display: flex; justify-content: flex-end; gap: 15px; margin-top: 30px; }
 .cancel-btn, .save-btn {
   font-family: 'Bangers', cursive; font-size: 1.2rem; padding: 10px 20px;
@@ -280,11 +273,11 @@ const saveService = async () => {
 .save-btn { background: var(--neon-pink); color: #000; border: 3px solid #000; }
 .cancel-btn:hover, .save-btn:hover { transform: translate(-3px, -3px); }
 
-/* --- TU DISEÑO DE CLASES --- */
+
 .input-group { 
   display: flex; 
   flex-direction: column;
-  margin: 0; /* Quitamos el margen que rompía la rejilla */
+  margin: 0; 
 }
 label, .label-form {
   color: #00e5ff !important;
@@ -295,8 +288,8 @@ label, .label-form {
   margin: 0.35em;
 }
 .input-form {
-    width: 100% !important; /* Obliga a ocupar el ancho de su columna */
-    box-sizing: border-box !important; /* Cuenta el borde hacia adentro */
+    width: 100% !important; 
+    box-sizing: border-box !important; 
     padding: 10px 12px !important;
     background: #000 !important;
     color: #ffffff !important;
@@ -309,7 +302,7 @@ label, .label-form {
 textarea.input-form { resize: vertical; box-sizing: border-box; font-family: 'Orbitron', sans-serif !important; }
 .select-form { cursor: pointer; }
 
-/* --- LIMPIADOR DE FLECHAS --- */
+
 input[type="number"]::-webkit-outer-spin-button,
 input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
 input[type="number"] { -moz-appearance: textfield; appearance: textfield; }

@@ -9,23 +9,19 @@ async def check_vehicle_alerts():
     print("[Alert Scheduler] Iniciando comprobación de alertas de mantenimiento...")
     try:
         now = datetime.now(timezone.utc)
-        is_monday = now.weekday() == 0  # 0 es Lunes
+        is_monday = now.weekday() == 0
         
         with Session(engine) as session:
-            # 1. Obtener todos los usuarios
             usuarios = session.exec(select(User)).all()
             for user in usuarios:
-                # Obtener los vehículos del usuario
                 vehiculos = session.exec(select(Vehicle).where(Vehicle.user_id == user.user_id)).all()
                 if not vehiculos:
                     continue
                 
-                # Obtener todos los tipos de revisión
                 tipos = session.exec(select(RevisionType)).all()
                 if not tipos:
                     continue
                 
-                # Obtener todas las revisiones del usuario
                 vehiculos_matriculas = [v.matricula for v in vehiculos]
                 revisiones = session.exec(
                     select(Revision).where(col(Revision.vehiculo_id).in_(vehiculos_matriculas))
@@ -35,9 +31,7 @@ async def check_vehicle_alerts():
                     km_actual = coche.kilometraje
                     
                     for tipo in tipos:
-                        # Filtrar las revisiones de este coche y este tipo
                         srvs = [r for r in revisiones if r.vehiculo_id == coche.matricula and r.tipo_revision_id == tipo.tipo_revision_id]
-                        # Ordenar por kilometraje descendente
                         srvs.sort(key=lambda x: x.kilometro_servicio, reverse=True)
                         
                         ultimo_km = None
@@ -49,14 +43,12 @@ async def check_vehicle_alerts():
                             
                         km_restantes = proximo_km - km_actual
                         
-                        # Determinar estado
                         estado_actual = "AL DÍA"
                         if km_restantes <= 0:
-                            estado_actual = "VENCIDO"  # Rojo
+                            estado_actual = "VENCIDO"
                         elif km_restantes <= 1500:
-                            estado_actual = "PRÓXIMO"  # Amarillo
+                            estado_actual = "PRÓXIMO"
                             
-                        # Buscar alerta existente en la base de datos
                         alert_statement = select(ServiceAlert).where(
                             ServiceAlert.vehiculo_id == coche.matricula,
                             ServiceAlert.tipo_revision_id == tipo.tipo_revision_id
@@ -64,18 +56,15 @@ async def check_vehicle_alerts():
                         alert = session.exec(alert_statement).first()
                         
                         if estado_actual == "AL DÍA":
-                            # Si ya está al día (por ejemplo, porque hicieron la revisión), borramos cualquier alerta previa
                             if alert:
                                 session.delete(alert)
                                 session.commit()
                             continue
                             
-                        # Si llegamos aquí, el estado es PRÓXIMO o VENCIDO
                         enviar_email = False
                         
                         if not alert:
                             if tipo.tipo_revision_id:
-                                # Primera vez que detectamos esta alerta
                                 enviar_email = True
                                 nueva_alerta = ServiceAlert(
                                     vehiculo_id=coche.matricula,
@@ -86,16 +75,13 @@ async def check_vehicle_alerts():
                                 session.add(nueva_alerta)
                                 session.commit()
                         else:
-                            # Ya existía una alerta registrada
                             if alert.estado == "PRÓXIMO" and estado_actual == "VENCIDO":
-                                # Subió de amarillo a rojo, notificamos de nuevo
                                 enviar_email = True
                                 alert.estado = "VENCIDO"
                                 alert.ultimo_envio = now
                                 session.add(alert)
                                 session.commit()
                             elif alert.estado == "VENCIDO" and estado_actual == "VENCIDO":
-                                # Sigue en rojo. Si hoy es lunes y ha pasado al menos una semana (6 días), volvemos a enviar
                                 if is_monday and (now - alert.ultimo_envio).days >= 6:
                                     enviar_email = True
                                     alert.ultimo_envio = now
@@ -160,9 +146,7 @@ async def check_vehicle_alerts():
         print(f"[Alert Scheduler] Error en check_vehicle_alerts: {str(e)}")
 
 async def start_alert_scheduler():
-    # Esperamos 15 segundos al iniciar el backend antes de realizar el primer escaneo
     await asyncio.sleep(15)
     while True:
         await check_vehicle_alerts()
-        # Repetir el escaneo de telemetría cada 12 horas
         await asyncio.sleep(43200)

@@ -8,14 +8,13 @@ from security import get_current_user
 
 router = APIRouter(prefix="/revisiones", tags=["Revisiones"])
 
-# --- ESQUEMAS PARA RECIBIR DATOS DESDE VUE ---
 
 class ProductoUtilizadoIn(BaseModel):
     producto_id: int
     cantidad: int
 
 class RevisionCreateIn(BaseModel):
-    vehiculo_id: str # Es str porque tu clave primaria es la matrícula
+    vehiculo_id: str
     tipo_revision_id: int
     kilometro_servicio: int
     precio: Optional[float] = None
@@ -41,7 +40,6 @@ async def create_revision(revision_data: RevisionCreateIn,
                           current_user: User = Depends(get_current_user),
                           session: Session = Depends(get_session)):
     
-    # 1. Verificamos que el coche es de este usuario
     vehicle = session.exec(
         select(Vehicle).where(Vehicle.matricula == revision_data.vehiculo_id, Vehicle.user_id == current_user.user_id)
     ).first()
@@ -49,12 +47,10 @@ async def create_revision(revision_data: RevisionCreateIn,
     if not vehicle:
         raise HTTPException(status_code=404, detail="Vehículo no encontrado o acceso denegado")
 
-    # 2. Buscamos el tipo de revisión para calcular el próximo servicio
     rev_type = session.get(RevisionType, revision_data.tipo_revision_id)
     if not rev_type:
         raise HTTPException(status_code=404, detail="Tipo de revisión no encontrado")
 
-    # 3. CREAMOS LA REVISIÓN REAL
     nueva_revision = Revision(
         vehiculo_id=revision_data.vehiculo_id,
         tipo_revision_id=revision_data.tipo_revision_id,
@@ -65,12 +61,10 @@ async def create_revision(revision_data: RevisionCreateIn,
     
     session.add(nueva_revision)
     session.commit()
-    session.refresh(nueva_revision) # Aquí Postgres le asigna su revision_id
+    session.refresh(nueva_revision)
     
-    # 4. AÑADIMOS LOS PRODUCTOS A LA TABLA INTERMEDIA
     if revision_data.productos_utilizados:
         for prod in revision_data.productos_utilizados:
-            # Creamos la fila que une la revisión con el producto y su cantidad
             link = RevisionProducts(
                 revision_id=nueva_revision.revision_id,
                 producto_id=prod.producto_id,
@@ -78,10 +72,8 @@ async def create_revision(revision_data: RevisionCreateIn,
             )
             session.add(link)
         
-        # Guardamos todos los productos vinculados
         session.commit()
     
-    # Lógica: Calcular próximo servicio
     next_service_km = nueva_revision.kilometro_servicio + rev_type.cada_cuantos_Km
     
     return {

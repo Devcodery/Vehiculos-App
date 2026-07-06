@@ -60,7 +60,6 @@
 import { ref } from 'vue'
 import api from '@/services/api'
 
-// Definimos las señales que este componente puede enviar a su "padre" (HomeView)
 const emit = defineEmits(['close', 'refreshGarage'])
 
 const carForm = ref({
@@ -72,7 +71,6 @@ const carForm = ref({
   foto: null
 })
 
-// Controlamos el subir una imagen
 const handleFileUpload = (event) => {
   const file = event.target.files[0]
   if (file) {
@@ -101,7 +99,6 @@ const saveCar = async () => {
       headers: { 'Content-Type': 'multipart/form-data' }
     })
 
-    // Si sale bien, avisamos a HomeView para que recargue los coches y cierre el modal
     emit('refreshGarage')
     cerrar()
 

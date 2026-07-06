@@ -15,10 +15,8 @@ conf = ConnectionConfig(
     VALIDATE_CERTS = True
 )
 
-# Instanciamos el motor de correos
 motor_correos = FastMail(conf)
 
-# LA FUNCIÓN QUE HACE EL TRABAJO
 async def enviar_correo_real(email_destinatario: str, nombre_destinatario: str, asunto: str, cuerpo_html: str):
     
     contacto_formateado = NameEmail(nombre_destinatario, email_destinatario)

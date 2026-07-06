@@ -51,7 +51,6 @@
 import { ref } from 'vue'
 import api from '@/services/api'
 
-// El estado del formulario
 const formulario = ref({
   nombre: '',
   email: '',
@@ -61,20 +60,18 @@ const formulario = ref({
 
 const cargando = ref(false)
 const mensaje = ref('')
-const tipoMensaje = ref('') // 'exito' o 'error'
+const tipoMensaje = ref('')
 
 const registrarUsuario = async () => {
   cargando.value = true
   mensaje.value = ''
   
   try {
-    // Mandamos los datos al backend
     await api.post('/usuarios/', formulario.value)
     
     mensaje.value = `¡Usuario ${formulario.value.nombre} registrado con éxito!`
     tipoMensaje.value = 'exito'
     
-    // Limpiamos el formulario
     formulario.value = { nombre: '', email: '', rol: 'user', password: ''}
     
   } catch (error) {
@@ -149,11 +146,11 @@ const registrarUsuario = async () => {
 
 .brutalist-select {
   cursor: pointer;
-  appearance: none; /* Quita la flecha por defecto fea del navegador */
+  appearance: none; 
 }
 
 .submit-btn {
-  background: #ff00ff; /* Un rosa neón muy agresivo */
+  background: #ff00ff; 
   color: #fff;
   font-family: 'Bangers', cursive;
   font-size: 1.8rem;

@@ -13,7 +13,6 @@ export const useAuthStore = defineStore('auth', {
   actions: {
     async login(email, password) {
       try {
-        // FastAPI usa OAuth2, por eso enviamos un FormData
         const formData = new FormData()
         formData.append('username', email)
         formData.append('password', password)

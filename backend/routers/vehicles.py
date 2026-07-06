@@ -32,7 +32,6 @@ async def create_vehicle(matricula: str = Form(...),
     db_path = None
     
     if archivo_foto:
-        # Guardamos la foto en el servidor
         user_subfolder = f"vehicles/user{current_user.user_id}"
         destination_folder = os.path.join(MEDIA_ROOT, user_subfolder)
         os.makedirs(destination_folder, exist_ok=True)
@@ -49,7 +48,6 @@ async def create_vehicle(matricula: str = Form(...),
             
             db_path = f"{user_subfolder}/{final_name}"
     
-    # Creamos una instancia del modelo Vehicle con los datos recibidos
     vehicle = Vehicle(
         matricula=matricula,
         alias=alias,
@@ -68,7 +66,6 @@ async def create_vehicle(matricula: str = Form(...),
 @router.get("/", response_model=list[Vehicle])
 async def list_vehicles(current_user: User = Depends(get_current_user),
                         session: Session = Depends(get_session)):
-    # Solo buscamos los vehículos donde el user_id coincida con el del Token
     statement = select(Vehicle).where(Vehicle.user_id == current_user.user_id)
     vehiculos = session.exec(statement).all()
     return vehiculos

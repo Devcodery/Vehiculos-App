@@ -62,16 +62,13 @@ const router = createRouter({
   ]
 })
 
-// El "Guarda" del Router: si no hay token, te manda al login
 router.beforeEach((to, from) => {
   const authStore = useAuthStore()
   
-  // A. Si la ruta requiere estar logueado y no lo estás -> Al Login
   if (to.meta.requiresAuth && !authStore.isAuthenticated) {
     return '/login'
   }
 
-  // B. Si la ruta es solo para ADMINS y tu rol es otro -> Te mandamos al garaje
   if (to.meta.requiresAdmin && authStore.user?.rol !== 'admin') {
     alert("Acceso denegado: Solo para administradores.")
     return '/'

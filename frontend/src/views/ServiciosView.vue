@@ -103,7 +103,6 @@ onMounted(() => {
 const historialFiltrado = computed(() => {
     let filtrado = historialServicios.value
 
-    // 1. Filtrar por texto (vehículo o notas)
     if (busquedaHistorial.value) {
         const texto = busquedaHistorial.value.toLowerCase()
         filtrado = filtrado.filter(s =>
@@ -112,7 +111,6 @@ const historialFiltrado = computed(() => {
         )
     }
 
-    // 2. Filtrar por fecha de inicio (desde)
     if (fechaInicio.value) {
         const inicio = new Date(fechaInicio.value)
         inicio.setHours(0, 0, 0, 0)
@@ -122,7 +120,6 @@ const historialFiltrado = computed(() => {
         })
     }
 
-    // 3. Filtrar por fecha de fin (hasta)
     if (fechaFin.value) {
         const fin = new Date(fechaFin.value)
         fin.setHours(23, 59, 59, 999)
@@ -177,7 +174,7 @@ const historialFiltrado = computed(() => {
     box-shadow: 4px 4px 0 #000;
 }
 
-/* BARRA DE ACCIÓN / FILTROS */
+
 .action-bar {
     background: #1a1a1a;
     padding: 20px;
@@ -266,7 +263,7 @@ const historialFiltrado = computed(() => {
     border-color: #ffcc00;
 }
 
-/* HISTORIAL GRID */
+
 .services-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));

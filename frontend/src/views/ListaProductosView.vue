@@ -94,8 +94,7 @@ import api from '@/services/api'
 import EditProductModal from '@/components/EditProductModal.vue'
 import ProductModal from '@/components/ProductModal.vue'
 
-// --- ESTADO Y VARIABLES ---
-const productos = ref([]) // Aquí guardamos TODO lo que viene del backend
+const productos = ref([])
 const cargando = ref(true)
 
 const baseURL = import.meta.env.VITE_API_URL || 'http://localhost:8000'
@@ -107,16 +106,13 @@ const getImagenUrl = (ruta) => {
   return `${baseURL}/media/${ruta}`
 }
 
-// Variables para los filtros
 const busquedaNombre = ref('')
 const filtroCategoria = ref('TODOS')
 
-// Variables para los modales
 const showCreateModal = ref(false)
 const showEditModal = ref(false)
 const productoSeleccionado = ref(null)
 
-// --- OBTENER DATOS DEL BACKEND ---
 const fetchProductos = async () => {
   try {
     const response = await api.get('/productos/')
@@ -132,18 +128,15 @@ onMounted(() => {
   fetchProductos()
 })
 
-// --- LA MAGIA DEL FILTRADO (Computed) ---
 const productosFiltrados = computed(() => {
   return productos.value.filter(prod => {
     
-    // 1. Filtro por texto (busca en nombre, marca o referencia de forma segura)
     const textoBuscado = busquedaNombre.value.toLowerCase()
     const coincideTexto = 
       (prod.nombre && prod.nombre.toLowerCase().includes(textoBuscado)) || 
       (prod.marca && prod.marca.toLowerCase().includes(textoBuscado)) || 
       (prod.referencia && prod.referencia.toLowerCase().includes(textoBuscado))
       
-    // 2. Filtro por categoría
     const coincideCategoria = 
       filtroCategoria.value === 'TODOS' || 
       prod.categoria === filtroCategoria.value
@@ -152,7 +145,6 @@ const productosFiltrados = computed(() => {
   })
 })
 
-// --- FUNCIONES DE BOTONES ---
 const openCreateModal = () => {
   showCreateModal.value = true
 }
@@ -170,7 +162,7 @@ const abrirModalEdicion = (producto) => {
   padding: 20px;
 }
 
-/* HEADER */
+
 .section-header {
   background: var(--panel-bg, #111);
   padding: 15px 20px;
@@ -201,7 +193,7 @@ const abrirModalEdicion = (producto) => {
 }
 .add-btn:hover { transform: translate(-3px, -3px); box-shadow: 4px 4px 0 #000; }
 
-/* BARRA DE FILTROS */
+
 .filters-bar {
   background: #1a1a1a;
   padding: 20px;
@@ -252,7 +244,7 @@ const abrirModalEdicion = (producto) => {
   cursor: pointer;
 }
 
-/* GRID DE PRODUCTOS */
+
 .products-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
@@ -291,7 +283,7 @@ const abrirModalEdicion = (producto) => {
   border: 2px solid #000;
 }
 
-/* IMAGE CONTAINER */
+
 .product-image-container {
   height: 160px;
   background: #000;

@@ -101,7 +101,7 @@ const tipoMensaje = ref('')
 watch(() => props.producto, (nuevoProducto) => {
   if (nuevoProducto) {
     formulario.value = { ...nuevoProducto }
-    archivoImagen.value = null // Reseteamos el archivo seleccionado
+    archivoImagen.value = null
   }
 }, { immediate: true })
 
@@ -127,7 +127,6 @@ const guardarCambios = async () => {
     formData.append('nombre', formulario.value.nombre)
     formData.append('detalles', formulario.value.detalles || '')
     
-    // Si el backend tuviera soporte para estos campos en el modelo
     if (formulario.value.referencia) {
       formData.append('referencia', formulario.value.referencia)
     }

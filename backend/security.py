@@ -43,11 +43,9 @@ verify_env_variables()
 def create_access_token(data: dict):
     to_encode = data.copy()
     
-    # Ponemos fecha de caducidad
     expire = datetime.now(timezone.utc) + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     to_encode.update({"exp": expire})
     
-    # Firmamos el token con nuestra SECRET_KEY
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     
     return encoded_jwt
@@ -56,15 +54,12 @@ def get_password_prehash(password: str) -> str:
     return hashlib.sha256(password.encode("utf-8")).hexdigest()
 
 def verificar_password(password_plana, password_hasheada_db):
-    # Primero pre-hasheas lo que el usuario acaba de escribir
     pre_hashed = get_password_prehash(password_plana)
     
-    # Luego comparas ese pre-hash con el hash de bcrypt de la DB
     return pwd_context.verify(pre_hashed, password_hasheada_db)
 
 async def get_current_user(token: str = Depends(oauth2_scheme), session: Session = Depends(get_session)):
     try:
-        # 1. Decodificamos el JWT con nuestra SECRET_KEY
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         
         token_data = payload.get("sub")
@@ -74,11 +69,10 @@ async def get_current_user(token: str = Depends(oauth2_scheme), session: Session
     except JWTError:
         raise HTTPException(status_code=401, detail="No se pudo validar el token")
     
-    # 2. Buscamos al usuario en la DB
     statement = select(User).where(User.email == token_data)
     user = session.exec(statement).first()
     
     if user is None:
         raise HTTPException(status_code=401, detail="Usuario no encontrado")
     
-    return user # Devolvemos el objeto usuario completo
+    return user

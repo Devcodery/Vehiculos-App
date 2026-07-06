@@ -9,7 +9,6 @@ router = APIRouter(prefix="/auth", tags=["Autenticación"])
 
 @router.post("/token")
 async def login(form_data: OAuth2PasswordRequestForm = Depends(), session: Session = Depends(get_session)):
-    # 1. Buscar al usuario por email (OAuth2 usa 'username' por defecto)
     statement = select(User).where(User.email == form_data.username)
     user = session.exec(statement).first()
     

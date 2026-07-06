@@ -50,7 +50,6 @@ import { ref } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import { useRouter } from 'vue-router'
 
-// 1. Variables reactivas (lo que escribes en los cuadros)
 const email = ref('')
 const password = ref('')
 const showPassword = ref(false)
@@ -60,19 +59,15 @@ const errorMessage = ref('')
 const authStore = useAuthStore()
 const router = useRouter()
 
-// 2. La función que se ejecuta al dar click al botón
 const handleLogin = async () => {
   loading.value = true
   errorMessage.value = ''
 
-  // Llamamos a la "acción" de la Store que creamos antes
   const result = await authStore.login(email.value, password.value)
 
   if (result.success) {
-    // Si sale bien, nos vamos a la Home
     router.push('/')
   } else {
-    // Si sale mal, mostramos el error
     errorMessage.value = result.error
   }
   loading.value = false
@@ -80,7 +75,7 @@ const handleLogin = async () => {
 </script>
 
 <style scoped>
-/* Clase útil global para aplicar el estilo "dibujado a mano" o "cell-shaded" */
+
 .cell-shaded {
   border: 4px solid #000;
   box-shadow: 6px 6px 0 #000;
@@ -90,7 +85,7 @@ const handleLogin = async () => {
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 100vh; /* Ocupamos toda la pantalla */
+  height: 100vh; 
   
   font-family: 'Roboto', sans-serif;
 }
@@ -98,13 +93,13 @@ const handleLogin = async () => {
 .login-form {
   background: var(--panel-bg);
   padding: 3rem;
-  /* 3. Estilo cell-shaded: Borde grueso y sombra de cómic */
+  
   border: 5px solid #000;
   box-shadow: 10px 10px 0 #000, 0 0 20px rgba(0, 255, 102, 0.15);
   border-radius: 4px;
   width: 340px;
   backdrop-filter: blur(8px);
-  /* Esquina de la caja "abollada" con neón */
+  
   position: relative;
   overflow: hidden;
 }
@@ -121,7 +116,7 @@ const handleLogin = async () => {
 }
 
 h1 {
-  /* 4. Tipografía "Racing" itálica de Orbitron con contorno negro */
+  
   font-family: 'Orbitron', sans-serif;
   font-style: italic;
   font-weight: 900;
@@ -130,9 +125,9 @@ h1 {
   text-align: center;
   margin-bottom: 2.5rem;
   letter-spacing: 3px;
-  /* Texto azul brillante con contorno negro */
+  
   color: var(--neon-blue);
-  -webkit-text-stroke: 1.5px #000; /* Contorno negro para el texto */
+  -webkit-text-stroke: 1.5px #000; 
   text-shadow: 3px 3px 0 #000, 0 0 10px rgba(0, 204, 255, 0.6);
 }
 
@@ -142,7 +137,7 @@ h1 {
 
 label {
   display: block;
-  font-family: 'Bangers', cursive; /* Fuente agresiva de cómic */
+  font-family: 'Bangers', cursive; 
   font-size: 1.1rem;
   text-transform: uppercase;
   letter-spacing: 1px;
@@ -153,12 +148,12 @@ label {
 input {
   width: 100%;
   padding: 14px;
-  /* Inputs de "metal abollado" con textura de semitono */
+  
   background: rgba(0, 0, 0, 0.7);
   background-image: radial-gradient(#333 10%, transparent 11%), radial-gradient(#333 10%, transparent 11%);
   background-size: 10px 10px;
   background-position: 0 0, 5px 5px;
-  border: 4px solid #000; /* Estilo cell-shaded */
+  border: 4px solid #000; 
   border-radius: 2px;
   color: #fff;
   font-size: 1.1rem;
@@ -168,7 +163,7 @@ input {
   box-sizing: border-box;
 }
 
-/* 5. Efecto al hacer clic en un input: Se enciende en neón rosa */
+
 input:focus {
   border-color: var(--neon-pink);
   box-shadow: 0 0 10px rgba(255, 0, 255, 0.5);
@@ -196,19 +191,19 @@ input:focus {
   justify-content: center;
 }
 
-/* Adaptamos la clase para FontAwesome */
+
 .icon-svg {
-  font-size: 20px; /* Controla el tamaño del ojo */
+  font-size: 20px; 
   color: #999;
   transition: color 0.3s ease;
-  filter: drop-shadow(2px 2px 0 #000); /* Mantiene la sombra dura de cómic */
+  filter: drop-shadow(2px 2px 0 #000); 
 }
 
 .toggle-btn:hover .icon-svg {
-  color: var(--neon-blue); /* Brilla en azul al pasar el ratón */
+  color: var(--neon-blue); 
 }
 
-/* 6. El botón de Iniciar Sesión estilo Explosión */
+
 .login-btn {
   width: 100%;
   padding: 15px;
@@ -222,7 +217,7 @@ input:focus {
   font-size: 1.2rem;
   text-transform: uppercase;
   letter-spacing: 2px;
-  /* Estilo cell-shaded agresivo */
+  
   border: 5px solid #000;
   border-radius: 4px;
   box-shadow: 6px 6px 0 #000, 0 0 15px rgba(255, 242, 0, 0.4);
@@ -231,7 +226,7 @@ input:focus {
 }
 
 .login-btn:hover:not(:disabled) {
-  transform: translate(-3px, -3px); /* Hace un pequeño gesto de "salto" de viñeta */
+  transform: translate(-3px, -3px); 
   box-shadow: 9px 9px 0 #000, 0 0 25px rgba(255, 242, 0, 0.7);
 }
 
@@ -245,14 +240,14 @@ input:focus {
 
 .error {
   font-family: 'Bangers', cursive;
-  color: #ff3366; /* Un rojo neón para los errores */
+  color: #ff3366; 
   text-align: center;
   font-size: 1.1rem;
   margin-top: 20px;
   text-shadow: 3px 3px 0 #000;
 }
 
-/* Mantén las clases de transición de los iconos que hicimos antes */
+
 .icon-span { display: inline-block; }
 .icon-fade-enter-active, .icon-fade-leave-active { transition: opacity 0.3s ease, transform 0.3s ease; }
 .icon-fade-enter-from, .icon-fade-leave-to { opacity: 0; transform: rotate(-180deg) scale(0.5); }

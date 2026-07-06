@@ -122,10 +122,8 @@ const showKmModal = ref(false)
 const cocheSeleccionadoParaKm = ref(null)
 
 
-// Funcion para extraer los vehiculos del usuario de la base de datos
 const fetchVehiculos = async () => {
   try {
-    // Peticion a la ruta
     const response = await api.get('/vehiculos/')
 
     cars.value = response.data
@@ -136,20 +134,18 @@ const fetchVehiculos = async () => {
 
 const enviarParcheVehiculo = async (idIdentificador, datosCambiados) => {
   try {
-    // Mandamos solo los datos que vengan en el objeto 'datosCambiados'
     const response = await api.patch(`/vehiculos/${idIdentificador}`, datosCambiados)
     return { success: true, data: response.data }
   } catch (error) {
     console.error("Error al actualizar el vehículo:", error)
-    // Mostramos un error genérico (o puedes personalizarlo leyendo error.response)
     alert("Error de comunicación con el servidor.")
     return { success: false }
   }
 }
 
 const abrirModalKilometraje = (car) => {
-  cocheSeleccionadoParaKm.value = car // Guardamos a qué coche le vamos a cambiar el KM
-  showKmModal.value = true            // Mostramos la ventana brutalista
+  cocheSeleccionadoParaKm.value = car
+  showKmModal.value = true
 }
 
 const procesarNuevoKm = async (nuevoKmValor) => {
@@ -159,14 +155,13 @@ const procesarNuevoKm = async (nuevoKmValor) => {
   const resultado = await enviarParcheVehiculo(idCoche, { kilometraje: nuevoKmValor })
 
   if (resultado.success) {
-    coche.kilometraje = nuevoKmValor // Actualizamos la tarjeta en vivo
-    showKmModal.value = false        // Cerramos el modal
+    coche.kilometraje = nuevoKmValor
+    showKmModal.value = false
   } else {
     alert("Error al guardar en la base de datos.")
   }
 }
 
-// Con esto hacemos que se cargue nada abrir la pagina
 const verVehiculo = (matricula) => {
   router.push(`/vehiculo/${matricula}`)
 }
@@ -175,9 +170,7 @@ onMounted(() => {
   fetchVehiculos()
 })
 
-// --- LÓGICA DE LOS MODALES ---
 
-// Abrir el registrar carro
 const openCarModal = () => {
   showCarModal.value = true
 }
@@ -207,7 +200,7 @@ const verDetallesVehiculo = (matricula) => {
 }
 
 
-/* --- WELCOME BANNER --- */
+
 .welcome-banner {
   background: rgba(0, 0, 0, 0.8);
   padding: 20px 30px;
@@ -229,7 +222,7 @@ const verDetallesVehiculo = (matricula) => {
   text-shadow: 2px 2px 0 #000;
 }
 
-/* --- GRID DE 2 COLUMNAS --- */
+
 .two-columns {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -251,7 +244,7 @@ const verDetallesVehiculo = (matricula) => {
   text-shadow: 2px 2px 0 #000;
 }
 
-/* --- TARJETAS DE COCHES --- */
+
 .cars-list {
   display: flex;
   flex-direction: column;
@@ -261,9 +254,9 @@ const verDetallesVehiculo = (matricula) => {
 .car-card {
   display: flex;
   flex-direction: column; 
-  gap: 15px; /* Crea un espacio uniforme entre el título, la caja de KM y el botón */
+  gap: 15px; 
   padding: 20px;
-  /* Mantén aquí tus reglas actuales de background, border y box-shadow */
+  
 }
 
 .car-card:hover {
@@ -287,12 +280,12 @@ const verDetallesVehiculo = (matricula) => {
 
 .view-btn {
   width: 100%;
-  margin-top: auto; /* Empuja el botón al fondo si la tarjeta crece */
+  margin-top: auto; 
   padding: 10px;
   font-family: 'Bangers', cursive;
   font-size: 1.2rem;
   text-transform: uppercase;
-  /* Mantén aquí tus reglas de color y bordes para este botón */
+  
 }
 
 .view-btn:hover {
@@ -300,19 +293,19 @@ const verDetallesVehiculo = (matricula) => {
   color: #000;
 }
 
-/* ================================================= */
-/* BOTONES TIPO "TILE" (INSPIRADOS EN LA IMAGEN)  */
-/* ================================================= */
+
+
+
 .action-grid {
   display: grid;
-  /* Esto hace que los botones se coloquen uno al lado del otro si hay espacio */
+  
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: 20px;
 }
 
 .tile-btn {
   background: #1c1f2b;
-  /* Fondo azul oscuro/morado */
+  
   padding: 30px 20px;
   display: flex;
   flex-direction: column;
@@ -329,7 +322,7 @@ const verDetallesVehiculo = (matricula) => {
 
 .tile-icon {
   font-size: 50px;
-  /* Al ser una fuente, el tamaño se cambia con font-size */
+  
   color: var(--neon-pink);
   margin-bottom: 20px;
   filter: drop-shadow(2px 2px 0px #000);
@@ -337,7 +330,7 @@ const verDetallesVehiculo = (matricula) => {
 
 .tile-title {
   color: var(--neon-yellow);
-  /* Título amarillo neón */
+  
   font-family: 'Bangers', cursive;
   font-size: 1.6rem;
   margin: 0 0 15px 0;
@@ -348,7 +341,7 @@ const verDetallesVehiculo = (matricula) => {
 
 .tile-desc {
   color: #dae1e7;
-  /* Texto de descripción gris claro */
+  
   font-family: 'Roboto', sans-serif;
   font-size: 0.95rem;
   margin: 0;
@@ -357,18 +350,18 @@ const verDetallesVehiculo = (matricula) => {
 
 .menu-icon {
   font-size: 35px;
-  /* Controla el tamaño de las 3 rayitas */
+  
 }
 
 .km-section {
   display: flex;
-  justify-content: space-between; /* Número a la izquierda, botón a la derecha */
+  justify-content: space-between; 
   align-items: center;
-  flex-wrap: wrap; /* Si la pantalla es muy pequeña, el botón baja a la siguiente línea */
+  flex-wrap: wrap; 
   gap: 10px;
   
   background: rgba(0, 0, 0, 0.4);
-  border: 2px dashed #555; /* Estilo industrial para separar del resto */
+  border: 2px dashed #555; 
   padding: 12px 15px;
 }
 
@@ -384,7 +377,7 @@ const verDetallesVehiculo = (matricula) => {
 .km-number {
   font-size: 1.8rem;
   font-weight: bold;
-  letter-spacing: 2px; /* Un poco de aire entre los números digitales */
+  letter-spacing: 2px; 
 }
 
 .btn-update-km {

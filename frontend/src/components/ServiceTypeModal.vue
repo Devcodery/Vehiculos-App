@@ -149,7 +149,7 @@ const saveService = async () => {
 .modal-fade-enter-active, .modal-fade-leave-active { transition: opacity 0.3s ease, transform 0.3s ease; }
 .modal-fade-enter-from, .modal-fade-leave-to { opacity: 0; transform: scale(0.95); }
 
-/* --- TU DISEÑO DE CLASES --- */
+
 .input-group {
     display: grid;
     margin: 0.5em;

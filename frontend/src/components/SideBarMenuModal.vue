@@ -67,7 +67,7 @@ const ejecutarLogout = () => {
 </script>
 
 <style scoped>
-/* Fondo oscuro detrás del menú */
+
 .sidebar-overlay {
     position: fixed;
     top: 0;
@@ -79,7 +79,7 @@ const ejecutarLogout = () => {
     z-index: 1000;
 }
 
-/* El panel lateral */
+
 .brutalist-sidebar {
     position: fixed;
     top: 0;
@@ -92,12 +92,12 @@ const ejecutarLogout = () => {
     display: flex;
     flex-direction: column;
 
-    /* Animación de entrada: escondido a la izquierda */
+    
     transform: translateX(-100%);
     transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
-/* Cuando show es true, esta clase empuja el menú hacia la pantalla */
+
 .brutalist-sidebar.is-open {
     transform: translateX(0);
 }

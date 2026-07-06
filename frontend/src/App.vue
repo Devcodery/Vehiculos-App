@@ -34,10 +34,8 @@ const route = useRoute()
 const router = useRouter()
 const authStore = useAuthStore()
 
-// Control del menú lateral global
 const showMenuModal = ref(false)
 
-// Lógica de cerrar sesión global
 const handleLogout = () => {
   authStore.logout()
   router.push('/login')
@@ -45,7 +43,7 @@ const handleLogout = () => {
 </script>
 
 <style>
-/* --- ESTILOS GLOBALES BÁSICOS --- */
+
 body {
   font-family: sans-serif;
   margin: 0;
@@ -53,12 +51,12 @@ body {
   background-color: #1a1a1a;
 }
 
-/* --- ESTILOS DE LA CABECERA GLOBAL --- */
+
 .top-nav {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: #111; /* Asegura que coincida con tu var(--panel-bg) */
+  background: #111; 
   padding: 15px 30px;
   border-bottom: 4px solid #fff;
 }
@@ -72,7 +70,7 @@ body {
   font-family: 'Orbitron', sans-serif;
   font-style: italic;
   font-size: 3rem;
-  color: #00e5ff; /* Tu cyan neón */
+  color: #00e5ff; 
   margin: 0;
   -webkit-text-stroke: 1.5px #000;
   text-shadow: 3px 3px 0 #000;
@@ -90,7 +88,7 @@ body {
 .menu-icon { font-size: 35px; }
 
 .logout-btn {
-  background: #ff00ff; /* Rosa neón */
+  background: #ff00ff; 
   color: #000;
   font-family: 'Bangers', cursive;
   font-size: 1.2rem;

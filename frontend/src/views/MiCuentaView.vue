@@ -105,7 +105,6 @@ import api from '@/services/api'
 
 const authStore = useAuthStore()
 
-// --- ESTADO DEL PERFIL ---
 const perfilForm = ref({
     nombre: '',
     email: ''
@@ -114,7 +113,6 @@ const cargandoPerfil = ref(false)
 const mensajePerfil = ref('')
 const tipoMensajePerfil = ref('')
 
-// --- ESTADO DE LA CONTRASEÑA ---
 const passwordForm = ref({
     password_actual: '',
     password_nueva: '',
@@ -127,7 +125,6 @@ const cargandoPassword = ref(false)
 const mensajePassword = ref('')
 const tipoMensajePassword = ref('')
 
-// Cargar los datos actuales en el formulario al abrir la página
 onMounted(() => {
     if (authStore.user) {
         perfilForm.value.nombre = authStore.user.nombre
@@ -135,7 +132,6 @@ onMounted(() => {
     }
 })
 
-// --- FUNCIONES ---
 
 const actualizarPerfil = async () => {
     cargandoPerfil.value = true
@@ -146,7 +142,6 @@ const actualizarPerfil = async () => {
         mensajePerfil.value = '¡Datos actualizados correctamente!'
         tipoMensajePerfil.value = 'exito'
 
-        // Actualizamos el store para que la cabecera (y otras partes de la app) reflejen el nuevo nombre al instante
         authStore.user.nombre = response.data.nombre
         authStore.user.email = response.data.email
 
@@ -162,7 +157,7 @@ const actualizarPassword = async () => {
     if (passwordForm.value.password_nueva !== passwordForm.value.confirmar_password) {
         mensajePassword.value = 'Las contraseñas nuevas no coinciden.'
         tipoMensajePassword.value = 'error'
-        return // Frenamos la función aquí, no molestamos al backend
+        return
     }
     cargandoPassword.value = true
     mensajePassword.value = ''
@@ -172,12 +167,10 @@ const actualizarPassword = async () => {
         mensajePassword.value = '¡Contraseña cambiada con éxito!'
         tipoMensajePassword.value = 'exito'
 
-        // Limpiamos los campos por seguridad
         passwordForm.value.password_actual = ''
         passwordForm.value.password_nueva = ''
         passwordForm.value.confirmar_password = ''
 
-        // Ocultamos las contraseñas
         showPasswordActual.value = false
         showPasswordNueva.value = false
         showConfirmarPassword.value = false
@@ -306,7 +299,7 @@ const actualizarPassword = async () => {
     border: 4px solid #000;
     cursor: pointer;
     margin-top: auto;
-    /* Empuja el botón al fondo */
+    
     transition: transform 0.1s, box-shadow 0.1s;
 }
 
@@ -353,7 +346,7 @@ const actualizarPassword = async () => {
     color: #fff;
 }
 
-/* Password wrapper and visibility toggle button */
+
 .password-wrapper {
     position: relative;
     display: flex;
@@ -377,7 +370,7 @@ const actualizarPassword = async () => {
     justify-content: center;
 }
 
-/* Eye icon */
+
 .icon-svg {
     font-size: 20px;
     color: #999;
@@ -389,7 +382,7 @@ const actualizarPassword = async () => {
     color: #00e5ff;
 }
 
-/* Transitions */
+
 .icon-span {
     display: inline-block;
 }

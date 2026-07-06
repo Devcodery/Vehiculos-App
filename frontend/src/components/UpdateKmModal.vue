@@ -48,11 +48,10 @@ const emit = defineEmits(['close', 'save'])
 const nuevoKm = ref(0)
 const errorMsg = ref('')
 
-// Cuando el modal se abre, rellenamos el input con el KM actual del coche
 watch(() => props.show, (isOpen) => {
   if (isOpen && props.car) {
     nuevoKm.value = props.car.kilometraje
-    errorMsg.value = '' // Limpiamos errores anteriores
+    errorMsg.value = ''
   }
 })
 
@@ -65,7 +64,6 @@ const guardar = () => {
     errorMsg.value = `Debe ser mayor al actual (${props.car.kilometraje} km)`
     return
   }
-  // Enviamos el dato a HomeView para que haga la petición a FastAPI
   emit('save', nuevoKm.value)
 }
 </script>
