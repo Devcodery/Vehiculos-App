@@ -134,7 +134,15 @@ const fetchVehiculos = async () => {
 
 const enviarParcheVehiculo = async (idIdentificador, datosCambiados) => {
   try {
-    const response = await api.patch(`/vehiculos/${idIdentificador}`, datosCambiados)
+    const formData = new FormData()
+    for (const key in datosCambiados) {
+      if (datosCambiados[key] !== undefined && datosCambiados[key] !== null) {
+        formData.append(key, datosCambiados[key])
+      }
+    }
+    const response = await api.patch(`/vehiculos/${idIdentificador}`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    })
     return { success: true, data: response.data }
   } catch (error) {
     console.error("Error al actualizar el vehículo:", error)
