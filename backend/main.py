@@ -6,6 +6,7 @@ from fastapi.staticfiles import StaticFiles
 from sqlmodel import Session, select
 from database import create_db_and_tables, engine
 from models import User
+import os
 from security import (
     MEDIA_ROOT,
     ADMIN_PASSWORD,
@@ -66,6 +67,7 @@ app = FastAPI(
     lifespan=lifespan
 )
 
+os.makedirs(MEDIA_ROOT, exist_ok=True)
 app.mount("/media", StaticFiles(directory=MEDIA_ROOT), name="media")
 
 origins = [
