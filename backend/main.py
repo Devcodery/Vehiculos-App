@@ -67,7 +67,7 @@ origins = [
     "http://localhost:5173",
     "http://127.0.0.1:5173",
     "https://autocare.devcodery.duckdns.org",
-    "https://api.devcodery.duckdns.org",
+    "https://api-autocare.devcodery.duckdns.org",
 ]
 
 app.add_middleware(
