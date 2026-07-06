@@ -151,6 +151,8 @@
             :show="showDetailsModal" 
             :service="selectedService" 
             @close="showDetailsModal = false" 
+            @updated="onServiceUpdated"
+            @deleted="onServiceDeleted"
         />
     </div>
 </template>
@@ -167,6 +169,17 @@ const selectedService = ref(null)
 const verDetalle = (srv) => {
     selectedService.value = srv
     showDetailsModal.value = true
+}
+
+const onServiceUpdated = async (updatedSrv) => {
+    await fetchData()
+    selectedService.value = updatedSrv
+}
+
+const onServiceDeleted = async (deletedId) => {
+    await fetchData()
+    showDetailsModal.value = false
+    selectedService.value = null
 }
 
 const route = useRoute()

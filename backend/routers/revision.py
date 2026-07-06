@@ -1,3 +1,4 @@
+from datetime import date
 from typing import Optional, List
 from pydantic import BaseModel
 from fastapi import APIRouter, Depends, HTTPException
@@ -21,6 +22,14 @@ class RevisionCreateIn(BaseModel):
     precio: Optional[float] = None
     nota: Optional[str] = None
     productos_utilizados: List[ProductoUtilizadoIn] = []
+
+class RevisionUpdateIn(BaseModel):
+    tipo_revision_id: Optional[int] = None
+    kilometro_servicio: Optional[int] = None
+    precio: Optional[float] = None
+    nota: Optional[str] = None
+    fecha: Optional[date] = None
+    productos_utilizados: Optional[List[ProductoUtilizadoIn]] = None
 
 class RevisionTypeUpdate(BaseModel):
     nombre: Optional[str] = None
@@ -179,3 +188,109 @@ async def delete_revision_type(tipo_revision_id: int,
     session.commit()
     log_action("revisions", "eliminacion_tipo_servicio", current_user.email, f"Eliminado tipo de servicio {tipo_revision_id}")
     return {"mensaje": "Tipo de revisión eliminado con éxito"}
+
+@router.patch("/{revision_id}")
+async def update_revision(revision_id: int,
+                          revision_data: RevisionUpdateIn,
+                          current_user: User = Depends(get_current_user),
+                          session: Session = Depends(get_session)):
+    revision = session.get(Revision, revision_id)
+    if not revision:
+        raise HTTPException(status_code=404, detail="Revisión no encontrada")
+        
+    vehicle = session.exec(
+        select(Vehicle).where(Vehicle.matricula == revision.vehiculo_id, Vehicle.user_id == current_user.user_id)
+    ).first()
+    if not vehicle:
+        raise HTTPException(status_code=403, detail="Acceso denegado")
+        
+    if revision_data.tipo_revision_id is not None:
+        rev_type = session.get(RevisionType, revision_data.tipo_revision_id)
+        if not rev_type:
+            raise HTTPException(status_code=404, detail="Tipo de revisión no encontrado")
+        revision.tipo_revision_id = revision_data.tipo_revision_id
+        
+    if revision_data.kilometro_servicio is not None:
+        revision.kilometro_servicio = revision_data.kilometro_servicio
+        
+    if revision_data.precio is not None:
+        revision.precio = revision_data.precio
+        
+    if revision_data.nota is not None:
+        revision.nota = revision_data.nota
+        
+    if revision_data.fecha is not None:
+        revision.fecha = revision_data.fecha
+
+    session.add(revision)
+    session.commit()
+    session.refresh(revision)
+    
+    if revision_data.productos_utilizados is not None:
+        existing_links = session.exec(
+            select(RevisionProducts).where(RevisionProducts.revision_id == revision.revision_id)
+        ).all()
+        for link in existing_links:
+            session.delete(link)
+        session.commit()
+        
+        for prod in revision_data.productos_utilizados:
+            link = RevisionProducts(
+                revision_id=revision.revision_id,
+                producto_id=prod.producto_id,
+                cantidad=prod.cantidad
+            )
+            session.add(link)
+        session.commit()
+        
+    log_action("revisions", "actualizacion_revision", current_user.email, f"Actualizada revisión {revision.revision_id} para coche {revision.vehiculo_id}")
+    
+    rev_type = session.get(RevisionType, revision.tipo_revision_id)
+    updated_data = revision.model_dump()
+    updated_data["tipo_revision_nombre"] = rev_type.nombre if rev_type else "Mantenimiento"
+    
+    products_query = session.exec(
+        select(Product, RevisionProducts.cantidad)
+        .join(RevisionProducts, col(RevisionProducts.producto_id) == Product.producto_id)
+        .where(RevisionProducts.revision_id == revision.revision_id)
+    ).all()
+    
+    updated_data["productos"] = [
+        {
+            "producto_id": prod.producto_id,
+            "marca": prod.marca,
+            "nombre": prod.nombre,
+            "referencia": prod.referencia,
+            "categoria": prod.categoria,
+            "cantidad": cantidad
+        }
+        for prod, cantidad in products_query
+    ]
+    
+    return updated_data
+
+@router.delete("/{revision_id}")
+async def delete_revision(revision_id: int,
+                          current_user: User = Depends(get_current_user),
+                          session: Session = Depends(get_session)):
+    revision = session.get(Revision, revision_id)
+    if not revision:
+        raise HTTPException(status_code=404, detail="Revisión no encontrada")
+        
+    vehicle = session.exec(
+        select(Vehicle).where(Vehicle.matricula == revision.vehiculo_id, Vehicle.user_id == current_user.user_id)
+    ).first()
+    if not vehicle:
+        raise HTTPException(status_code=403, detail="Acceso denegado")
+        
+    existing_links = session.exec(
+        select(RevisionProducts).where(RevisionProducts.revision_id == revision.revision_id)
+    ).all()
+    for link in existing_links:
+        session.delete(link)
+        
+    session.delete(revision)
+    session.commit()
+    
+    log_action("revisions", "eliminacion_revision", current_user.email, f"Eliminada revisión {revision_id} para coche {revision.vehiculo_id}")
+    return {"mensaje": "Revisión eliminada con éxito"}

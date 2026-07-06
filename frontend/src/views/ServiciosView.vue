@@ -60,6 +60,8 @@
             :show="showDetailsModal" 
             :service="selectedService" 
             @close="showDetailsModal = false" 
+            @updated="onServiceUpdated"
+            @deleted="onServiceDeleted"
         />
     </div>
 </template>
@@ -80,6 +82,17 @@ const selectedService = ref(null)
 const verDetalle = (srv) => {
     selectedService.value = srv
     showDetailsModal.value = true
+}
+
+const onServiceUpdated = async (updatedSrv) => {
+    await fetchHistorial()
+    selectedService.value = updatedSrv
+}
+
+const onServiceDeleted = async (deletedId) => {
+    await fetchHistorial()
+    showDetailsModal.value = false
+    selectedService.value = null
 }
 
 const fechaInicio = ref('')
