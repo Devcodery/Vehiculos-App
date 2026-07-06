@@ -28,7 +28,10 @@ services:
       - .env
 
   frontend:
-    build: ./frontend
+    build:
+      context: ./frontend
+      args:
+        - VITE_API_URL=${VITE_API_URL}
     container_name: autocare_web
     restart: always
     ports:

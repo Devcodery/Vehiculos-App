@@ -13,6 +13,9 @@ RUN npm install
 # 5. Copiamos el resto del código de tu carpeta al contenedor
 COPY . .
 
+ARG VITE_API_URL
+ENV VITE_API_URL=$VITE_API_URL
+
 RUN npm run build
 
 # Etapa 2: Servir con Nginx (Súper ligero)
