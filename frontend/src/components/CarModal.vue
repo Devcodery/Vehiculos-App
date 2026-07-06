@@ -199,6 +199,7 @@ label, .label-form {
     border: 2px solid #fff !important;
     outline: none !important;
     transition: border-color 0.2s ease;
+    font-family: 'Orbitron', sans-serif !important;
 }
 
 .input-form:focus, .file-input:focus {
