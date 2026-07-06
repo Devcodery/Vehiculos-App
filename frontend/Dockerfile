@@ -21,6 +21,7 @@ RUN npm run build
 # Etapa 2: Servir con Nginx (Súper ligero)
 FROM nginx:alpine AS production-stage
 COPY --from=build-stage /app/dist /usr/share/nginx/html
+COPY nginx.conf /etc/nginx/conf.d/default.conf
 # Exponemos el puerto 80 del contenedor
 EXPOSE 80
 CMD ["nginx", "-g", "daemon off;"]
