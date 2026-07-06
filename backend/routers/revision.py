@@ -29,7 +29,9 @@ class RevisionTypeUpdate(BaseModel):
 
 @router.post("/tipos/", response_model=RevisionType)
 async def create_revision_type(revision_type: RevisionType,
+                               current_user: User = Depends(get_current_user),
                                session: Session = Depends(get_session)):
+    revision_type.user_id = current_user.user_id
     session.add(revision_type)
     session.commit()
     session.refresh(revision_type)
@@ -114,17 +116,21 @@ async def list_revision_type(current_user: User = Depends(get_current_user),
 @router.get("/tipos/", response_model=list[RevisionType])
 async def list_all_revision_types(current_user: User = Depends(get_current_user),
                                   session: Session = Depends(get_session)):
-    statement = select(RevisionType)
+    statement = select(RevisionType).where(RevisionType.user_id == current_user.user_id)
     revision_types = session.exec(statement).all()
     return revision_types
 
 @router.patch("/tipos/{tipo_revision_id}", response_model=RevisionType)
 async def update_revision_type(tipo_revision_id: int,
                                data: RevisionTypeUpdate,
+                               current_user: User = Depends(get_current_user),
                                session: Session = Depends(get_session)):
-    db_type = session.get(RevisionType, tipo_revision_id)
+    db_type = session.exec(
+        select(RevisionType).where(RevisionType.tipo_revision_id == tipo_revision_id, RevisionType.user_id == current_user.user_id)
+    ).first()
+    
     if not db_type:
-        raise HTTPException(status_code=404, detail="Tipo de revisión no encontrado")
+        raise HTTPException(status_code=404, detail="Tipo de revisión no encontrado o acceso denegado")
         
     update_data = data.model_dump(exclude_unset=True)
     for key, val in update_data.items():
@@ -136,10 +142,16 @@ async def update_revision_type(tipo_revision_id: int,
     return db_type
 
 @router.delete("/tipos/{tipo_revision_id}")
-async def delete_revision_type(tipo_revision_id: int, session: Session = Depends(get_session)):
-    db_type = session.get(RevisionType, tipo_revision_id)
+async def delete_revision_type(tipo_revision_id: int,
+                               current_user: User = Depends(get_current_user),
+                               session: Session = Depends(get_session)):
+    db_type = session.exec(
+        select(RevisionType).where(RevisionType.tipo_revision_id == tipo_revision_id, RevisionType.user_id == current_user.user_id)
+    ).first()
+    
     if not db_type:
-        raise HTTPException(status_code=404, detail="Tipo de revisión no encontrado")
+        raise HTTPException(status_code=404, detail="Tipo de revisión no encontrado o acceso denegado")
+        
     session.delete(db_type)
     session.commit()
     return {"mensaje": "Tipo de revisión eliminado con éxito"}
