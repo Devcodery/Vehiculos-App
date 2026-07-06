@@ -20,7 +20,7 @@
             <button @click="navegarA('ListaProductos')" class="nav-item">
                 <i class="fa-solid fa-box-open"></i> Catálogo de Productos
             </button>
-            <button @click="navegarA('ListaServicios')" class="nav-item">
+            <button @click="navegarA('HistorialServicios')" class="nav-item">
                 <i class="fa-solid fa-wrench"></i> Historial de Servicios
             </button>
             <button @click="navegarA('TiposServicio')" class="nav-item">
