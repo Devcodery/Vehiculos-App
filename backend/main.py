@@ -73,6 +73,8 @@ app.mount("/media", StaticFiles(directory=MEDIA_ROOT), name="media")
 origins = [
     "http://localhost:5173", # Puerto por defecto de Vite/Vue
     "http://127.0.0.1:5173",
+    "https://autocare.devcodery.duckdns.org", # Dominio de producción frontend
+    "https://api.devcodery.duckdns.org",      # Dominio de producción backend
 ]
 
 app.add_middleware(
