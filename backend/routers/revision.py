@@ -3,7 +3,7 @@ from pydantic import BaseModel
 from fastapi import APIRouter, Depends, HTTPException
 from sqlmodel import Session, select, col
 from database import get_session
-from models import RevisionType, Revision, RevisionProducts, Vehicle, User
+from models import RevisionType, Revision, RevisionProducts, Vehicle, User, Product
 from security import get_current_user
 from services.audit_logger import log_action
 
@@ -105,6 +105,25 @@ async def list_revisions(current_user: User = Depends(get_current_user),
         rev_data = rev.model_dump()
         rev_type = session.get(RevisionType, rev.tipo_revision_id)
         rev_data["tipo_revision_nombre"] = rev_type.nombre if rev_type else "Mantenimiento"
+        
+        products_query = session.exec(
+            select(Product, RevisionProducts.cantidad)
+            .join(RevisionProducts, col(RevisionProducts.producto_id) == Product.producto_id)
+            .where(RevisionProducts.revision_id == rev.revision_id)
+        ).all()
+        
+        rev_data["productos"] = [
+            {
+                "producto_id": prod.producto_id,
+                "marca": prod.marca,
+                "nombre": prod.nombre,
+                "referencia": prod.referencia,
+                "categoria": prod.categoria,
+                "cantidad": cantidad
+            }
+            for prod, cantidad in products_query
+        ]
+        
         result.append(rev_data)
         
     return result
