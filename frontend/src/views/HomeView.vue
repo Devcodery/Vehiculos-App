@@ -68,7 +68,7 @@
 
             <button class="tile-btn cell-shaded" @click="openServiceTypeModal">
               <i class="fa-solid fa-clipboard-check tile-icon"></i>
-              <h3 class="tile-title">TIPO SERVICIO</h3>
+              <h3 class="tile-title">AGREGAR TIPO SERVICIO</h3>
               <p class="tile-desc">Configuración de protocolos de mantenimiento.</p>
             </button>
 
