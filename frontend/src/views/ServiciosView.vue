@@ -33,7 +33,7 @@
         </div>
 
         <main class="services-grid">
-            <div v-for="srv in historialFiltrado" :key="srv.revision_id" class="service-card cell-shaded">
+            <div v-for="srv in historialFiltrado" :key="srv.revision_id" class="service-card cell-shaded" @click="verDetalle(srv)">
                 <div class="card-header">
                     <span class="type-badge">{{ srv.tipo_revision_nombre || 'Mantenimiento' }}</span>
                     <span class="price-badge">{{ srv.precio }} €</span>
@@ -55,6 +55,12 @@
         </main>
 
         <ServiceModal v-if="showServiceModal" @close="showServiceModal = false" @refreshServices="fetchHistorial" />
+        
+        <ServiceDetailsModal 
+            :show="showDetailsModal" 
+            :service="selectedService" 
+            @close="showDetailsModal = false" 
+        />
     </div>
 </template>
 
@@ -62,10 +68,19 @@
 import { ref, computed, onMounted } from 'vue'
 import api from '@/services/api'
 import ServiceModal from '@/components/ServiceModal.vue'
+import ServiceDetailsModal from '@/components/ServiceDetailsModal.vue'
 
 const historialServicios = ref([])
 const busquedaHistorial = ref('')
 const showServiceModal = ref(false)
+
+const showDetailsModal = ref(false)
+const selectedService = ref(null)
+
+const verDetalle = (srv) => {
+    selectedService.value = srv
+    showDetailsModal.value = true
+}
 
 const fechaInicio = ref('')
 const fechaFin = ref('')
@@ -278,6 +293,7 @@ const historialFiltrado = computed(() => {
     flex-direction: column;
     gap: 15px;
     transition: transform 0.2s;
+    cursor: pointer;
 }
 
 .service-card:hover {
