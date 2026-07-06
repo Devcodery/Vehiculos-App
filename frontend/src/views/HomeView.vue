@@ -33,7 +33,7 @@
                 </button>
               </div>
 
-              <button class="view-btn cell-shaded">Ver</button>
+              <button @click="verVehiculo(car.matricula)" class="view-btn cell-shaded">Ver</button>
             </div>
 
             <div v-if="cars.length === 0" class="car-card cell-shaded" style="justify-content: center; color: #aaa;">
@@ -142,7 +142,7 @@ const enviarParcheVehiculo = async (idIdentificador, datosCambiados) => {
   } catch (error) {
     console.error("Error al actualizar el vehículo:", error)
     // Mostramos un error genérico (o puedes personalizarlo leyendo error.response)
-    alert("❌ Error de comunicación con el servidor.")
+    alert("Error de comunicación con el servidor.")
     return { success: false }
   }
 }
@@ -162,11 +162,15 @@ const procesarNuevoKm = async (nuevoKmValor) => {
     coche.kilometraje = nuevoKmValor // Actualizamos la tarjeta en vivo
     showKmModal.value = false        // Cerramos el modal
   } else {
-    alert("❌ Error al guardar en la base de datos.")
+    alert("Error al guardar en la base de datos.")
   }
 }
 
 // Con esto hacemos que se cargue nada abrir la pagina
+const verVehiculo = (matricula) => {
+  router.push(`/vehiculo/${matricula}`)
+}
+
 onMounted(() => {
   fetchVehiculos()
 })
@@ -190,6 +194,9 @@ const openServiceModal = () => {
   showServiceModal.value = true
 }
 
+const verDetallesVehiculo = (matricula) => {
+  router.push({ name: 'VehiculoDetalle', params: { id: matricula } })
+}
 </script>
 
 <style scoped>
