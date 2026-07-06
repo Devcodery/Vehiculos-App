@@ -1,71 +1,111 @@
 # 🚗 AutoCare Pro: Gestión de Mantenimiento Vehicular Multi-Usuario
 
-AutoCare Pro es una plataforma integral diseñada para el seguimiento detallado del mantenimiento de flotas vehiculares personales. Este proyecto nace de la necesidad de centralizar el historial de servicios, permitiendo no solo recordar cuándo toca el cambio, sino qué producto específico se usó.
+AutoCare Pro es un ecosistema completo para la gestión técnica y telemetría de flotas vehiculares personales. Permite registrar las intervenciones mecánicas hechas a cada coche, catalogar los repuestos o insumos utilizados con su respectivo fabricante y referencia, estructurar planes de mantenimiento preventivo y recibir notificaciones periódicas vía Gmail en caso de que alguna revisión esté vencida o próxima a vencer.
+
+---
 
 ## 🛠️ Stack Tecnológico
 
-Elegido por su equilibrio entre rendimiento y facilidad de despliegue en servidores Ubuntu 24.04:
+El proyecto está diseñado bajo una arquitectura de microservicios contenedorizados listos para su despliegue:
 
-* **Backend:** ![Python](https://img.shields.io/badge/Python-3.12-blue?logo=python) **FastAPI** (Uso de SQLAlchemy + Pydantic para una API robusta).
-* **Frontend:** ![Vue.js](https://img.shields.io/badge/Vue.js-3.x-green?logo=vue.js) **Vue 3** con **Vite** y **Tailwind CSS**.
+* **Backend:** ![Python](https://img.shields.io/badge/Python-3.12-blue?logo=python) **FastAPI** (ORM SQLModel que unifica SQLAlchemy + Pydantic).
+* **Frontend:** ![Vue.js](https://img.shields.io/badge/Vue.js-3.x-green?logo=vue.js) **Vue 3 (Composition API)** con **Vite** y estilos estructurados en **Vanilla CSS (Brutalismo Cyberpunk)**.
 * **Base de Datos:** ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-blue?logo=postgresql) **PostgreSQL** para la persistencia de datos relacionales.
-* **Orquestación:** ![Docker](https://img.shields.io/badge/Docker-Container-blue?logo=docker) **Docker & Docker Compose**.
-* **Reverse Proxy:** ![Caddy](https://img.shields.io/badge/Caddy-Web_Server-black?logo=caddy) **Caddy** (gestión automática de SSL para el servidor).
+* **Orquestación y Despliegue:** ![Docker](https://img.shields.io/badge/Docker-Container-blue?logo=docker) **Docker & Docker Compose**.
+* **Reverse Proxy:** ![Caddy](https://img.shields.io/badge/Caddy-Web_Server-black?logo=caddy) **Caddy** (gestión automática de HTTPS y SSL en el host).
 
-## ✨ Funcionalidades Principales
+---
 
-### 👤 Gestión de Usuarios y Vehículos
+## 💾 Modelo de Entidades y Relaciones (DB Schema)
 
-* **Multi-usuario:** Cada usuario gestiona su propia cuenta y datos de forma aislada.
-* **Multi-vehículo:** Soporte para añadir múltiples coches bajo un mismo perfil.
-* **Kilometraje Dinámico:** Registro del kilometraje actual para cálculos de proximidad.
-
-### 🔧 Control de Mantenimiento (Customizado)
-
-* **Fluidos y Filtros:** Registro de aceite, refrigerante, líquido de frenos, transmisión y filtros (aire, polen, aceite, gasolina).
-* **Mantenimiento Pesado:** Control de correa de distribución, bomba de agua y bujías.
-* **Aditivos y Limpieza:** Registro de productos específicos como Ceratec (Liqui Moly), limpiadores de inyectores y motor.
-* **Trazabilidad total:** Cada registro guarda:
-  * Fecha y Kilometraje.
-  * Marca del producto (ej. Liqui Moly, Castrol, Bosch).
-  * Nombre del producto específico.
-
-## 📂 Estructura del Proyecto
+La base de datos relacional PostgreSQL está estructurada en base a las siguientes relaciones de cardinalidad:
 
 ```
-/autocare-pro
-├── backend/              # FastAPI API (Lógica, Modelos, CRUD)
-├── frontend/             # Vue.js Application (Vistas, Componentes)
-├── docker-compose.yml    # Orquestación de servicios para desarrollo
-├── docker-compose.prod.yml # Configuración optimizada para servidor
-└── Caddyfile             # Configuración del servidor web en Ubuntu
+  [User] 1 -------- N [Vehicle]
+    1                   1
+    |                   |
+    |                   |
+    N                   N
+  [RevisionType] 1 -- N [Revision] N ----- M [Product]
+                                     (RevisionProducts)
 ```
 
-## 🚀 Guía de Inicio (Desarrollo Local)
+### Tablas del Ecosistema
+1. **User:** Información de registro de los usuarios, contraseñas hasheadas con `bcrypt` y roles.
+2. **Vehicle:** Datos del coche (matrícula como llave primaria, marca, modelo, alias, kilometraje actual y foto).
+3. **Product:** Repuestos y consumibles (marca, nombre, referencia/código de barra, categoría e imagen).
+4. **RevisionType:** Protocolos y pautas de intervalos (cada cuántos kilómetros y meses se debe revisar).
+5. **Revision:** Intervención técnica real registrada en un vehículo (fecha, precio, kilometraje y notas).
+6. **RevisionProducts:** Relación intermedia que registra cuántas unidades de cada producto se usaron en una revisión específica.
+7. **ServiceAlert:** Registro de telemetría de alertas de servicios enviadas (para controlar la recurrencia de avisos semanales los lunes).
 
-Para ejecutar este proyecto en tu laptop (Pop!_OS):
+---
 
-1. Clona el repositorio:
+## 🧭 Referencia de Endpoints del Backend
 
-   ```bash
-   git clone https://github.com/tu-usuario/autocare-pro.git
-   cd autocare-pro
-   ```
+Los enrutadores modulares dividen la lógica en base a sus responsabilidades:
 
-2. Levanta la infraestructura:
+### Autenticación (`/auth`)
+* `POST /auth/token` - Autentica credenciales y emite el JWT.
+* `POST /auth/register` - Registro público de nuevos usuarios en el sistema.
 
-   ```bash
-   docker-compose up --build
-   ```
+### Perfil y Gestión de Usuarios (`/usuarios`)
+* `GET /usuarios/me` - Retorna los datos del perfil del usuario en sesión.
+* `PATCH /usuarios/me` - Modifica los datos personales o la contraseña (hasheándola de forma segura).
+* `GET /usuarios/` - Obtiene listado general de usuarios (Solo administradores).
 
-3. Accede a las interfaces:
-   * App Web: http://localhost:5173
-   * API Docs (Swagger): http://localhost:8000/docs
+### Garaje (`/vehiculos`)
+* `POST /vehiculos/` - Añade un vehículo al garaje (permite subir imágenes).
+* `GET /vehiculos/` - Obtiene todos los vehículos del usuario activo.
+* `GET /vehiculos/{vehiculo_id}` - Retorna el expediente técnico de un vehículo en particular.
+* `PATCH /vehiculos/{vehiculo_id}` - Modifica datos y actualiza la foto de un vehículo.
 
-## 👨‍💻 Notas Académicas (DAM)
+### Repuestos e Inventario (`/productos`)
+* `POST /productos/` - Agrega un producto al catálogo.
+* `GET /productos/` - Retorna la lista de productos disponibles.
+* `PATCH /productos/{producto_id}` - Actualiza datos e imagen del producto.
+* `DELETE /productos/{producto_id}` - Elimina un producto.
 
-Este proyecto implementa patrones clave del ciclo formativo:
+### Historial de Intervenciones (`/revisiones`)
+* `POST /revisiones/` - Registra un servicio vinculando los materiales utilizados.
+* `GET /revisiones/` - Obtiene el historial de revisiones del usuario actual.
+* `POST /revisiones/tipos/` - Crea un tipo de protocolo de mantenimiento.
+* `GET /revisiones/tipos/` - Lista todos los tipos de revisión registrados globalmente.
+* `GET /revisiones/tipos/mis/` - Retorna los tipos creados específicamente por el usuario activo.
+* `PATCH /revisiones/tipos/{tipo_revision_id}` - Actualiza un protocolo.
+* `DELETE /revisiones/tipos/{tipo_revision_id}` - Elimina un protocolo.
 
-* **Normalización de DB:** Relaciones 1:N entre Usuarios-Vehículos y Vehículos-Registros.
-* **Arquitectura de Microservicios:** Separación clara entre Front, Back y DB mediante contenedores.
-* **Seguridad:** Implementación de hashing para contraseñas y (próximamente) JWT para sesiones.
+---
+
+## ✉️ Daemon de Alertas de Telemetría (Gmail)
+
+El backend incorpora una tarea programada asíncrona (`start_alert_scheduler`) que se inicia junto con FastAPI y se ejecuta en segundo plano. Compara el kilometraje actual de cada coche contra su historial y los límites de los protocolos para emitir notificaciones:
+
+* **Estado Amarillo (`PRÓXIMO`):** Si restan `1.500 km` o menos para un servicio. Envía un correo con la ficha técnica del coche y los kilómetros restantes.
+* **Estado Rojo (`VENCIDO`):** Si restan `0 km` o menos. Se notifica de inmediato al cambiar el estado. Si persiste en rojo, se volverá a notificar únicamente los **Lunes** si ha transcurrido al menos una semana (6 días o más) desde el último aviso.
+* **Reseteo Automático:** Al registrar una nueva revisión de ese tipo en el coche, el sistema elimina el registro de alerta de la base de datos, re-estableciendo el semáforo a verde (`AL DÍA`).
+
+---
+
+## 🚀 Despliegue en Producción y Red
+
+Los puertos internos expuestos por Docker Compose son los siguientes:
+* **Base de Datos PostgreSQL:** Puerto host `5444` (interno `5432`).
+* **FastAPI API:** Puerto host `8000` (interno `8000`).
+* **Vue Frontend:** Puerto host `8080` (interno `80`).
+
+### Configuración del Caddyfile en el Servidor Host
+Caddy se encarga de redirigir los subdominios de forma segura y cifrada (HTTPS):
+
+```caddy
+# Frontend Web
+autocare.devcodery.duckdns.org {
+    reverse_proxy localhost:8080
+}
+
+# API Backend
+api.devcodery.duckdns.org {
+    reverse_proxy localhost:8000
+}
+```
+*Las carpetas multimedia de carga de archivos `/media_files` se configuran como un volumen persistente dentro de Docker Compose.*
