@@ -1,5 +1,5 @@
-# 1. Usamos una imagen de Node.js (la versión estable más reciente)
-FROM node:26-slim
+# 1. Usamos una imagen de Node.js (la versión LTS estable y ligera)
+FROM node:22-alpine AS build-stage
 
 # 2. Creamos la carpeta donde vivirá la app dentro de Docker
 WORKDIR /app
