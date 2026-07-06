@@ -13,9 +13,11 @@ RUN npm install
 # 5. Copiamos el resto del código de tu carpeta al contenedor
 COPY . .
 
-# 6. Exponemos el puerto que usa Vite por defecto
-EXPOSE 5173
+RUN npm run build
 
-# 7. Arrancamos el servidor de desarrollo
-# El "--host" es VITAL para que Docker deje ver la web desde fuera
-CMD ["npm", "run", "dev", "--", "--host"]
+# Etapa 2: Servir con Nginx (Súper ligero)
+FROM nginx:alpine AS production-stage
+COPY --from=build-stage /app/dist /usr/share/nginx/html
+# Exponemos el puerto 80 del contenedor
+EXPOSE 80
+CMD ["nginx", "-g", "daemon off;"]
