@@ -5,6 +5,7 @@ from sqlmodel import Session, select, col
 from database import get_session
 from models import RevisionType, Revision, RevisionProducts, Vehicle, User
 from security import get_current_user
+from services.audit_logger import log_action
 
 router = APIRouter(prefix="/revisiones", tags=["Revisiones"])
 
@@ -35,6 +36,7 @@ async def create_revision_type(revision_type: RevisionType,
     session.add(revision_type)
     session.commit()
     session.refresh(revision_type)
+    log_action("revisions", "creacion_tipo_servicio", current_user.email, f"Creado tipo de servicio {revision_type.nombre} (Intervalo: {revision_type.cada_cuantos_Km} km)")
     return revision_type
 
 @router.post("/")
@@ -77,6 +79,7 @@ async def create_revision(revision_data: RevisionCreateIn,
         session.commit()
     
     next_service_km = nueva_revision.kilometro_servicio + rev_type.cada_cuantos_Km
+    log_action("revisions", "registro_revision", current_user.email, f"Registrada revisión {nueva_revision.revision_id} para coche {nueva_revision.vehiculo_id} ({rev_type.nombre}) a los {nueva_revision.kilometro_servicio} km")
     
     return {
         "message": "Revisión registrada con éxito",
@@ -139,6 +142,7 @@ async def update_revision_type(tipo_revision_id: int,
     session.add(db_type)
     session.commit()
     session.refresh(db_type)
+    log_action("revisions", "actualizacion_tipo_servicio", current_user.email, f"Actualizado tipo de servicio {db_type.tipo_revision_id} - {db_type.nombre}")
     return db_type
 
 @router.delete("/tipos/{tipo_revision_id}")
@@ -154,4 +158,5 @@ async def delete_revision_type(tipo_revision_id: int,
         
     session.delete(db_type)
     session.commit()
+    log_action("revisions", "eliminacion_tipo_servicio", current_user.email, f"Eliminado tipo de servicio {tipo_revision_id}")
     return {"mensaje": "Tipo de revisión eliminado con éxito"}

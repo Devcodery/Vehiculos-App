@@ -7,6 +7,7 @@ from sqlmodel import Session, select
 from database import get_session
 from models import Vehicle, User
 from security import get_current_user, MEDIA_ROOT
+from services.audit_logger import log_action
 
 router = APIRouter(prefix="/vehiculos", tags=["Vehículos"])
 
@@ -61,6 +62,7 @@ async def create_vehicle(matricula: str = Form(...),
     session.add(vehicle)
     session.commit()
     session.refresh(vehicle)
+    log_action("vehicles", "creacion_vehiculo", current_user.email, f"Creado coche {vehicle.marca} {vehicle.modelo} con matrícula {vehicle.matricula}")
     return vehicle
 
 @router.get("/", response_model=list[Vehicle])
@@ -126,4 +128,5 @@ async def actualizar_vehiculo(
     session.add(coche)
     session.commit()
     session.refresh(coche)
+    log_action("vehicles", "actualizacion_vehiculo", current_user.email, f"Actualizado coche {coche.matricula} a kilometraje {coche.kilometraje} km")
     return coche

@@ -7,6 +7,7 @@ from database import get_session
 from models import User
 from security import get_current_user, get_password_prehash, pwd_context
 from services.email_services import enviar_correo_real
+from services.audit_logger import log_action
 
 router = APIRouter(prefix="/usuarios", tags=["Usuarios"])
 
@@ -49,6 +50,7 @@ async def create_user(user: UserCreate, session: Session = Depends(get_session),
     session.add(finalUser)
     session.commit()
     session.refresh(finalUser)
+    log_action("auth", "creacion_usuario", current_user.email, f"Creado usuario {finalUser.email} con rol {finalUser.rol}")
     return finalUser
 
 @router.patch("/change", response_model=User)
@@ -65,7 +67,7 @@ async def actualizar_mi_perfil(
     session.add(current_user)
     session.commit()
     session.refresh(current_user)
-    
+    log_action("auth", "actualizacion_perfil", current_user.email, f"Actualizados datos: {datos_nuevos}")
     return current_user
 
 @router.patch("/change/password")
@@ -84,6 +86,7 @@ async def cambiar_mi_password(
     
     session.add(current_user)
     session.commit()
+    log_action("auth", "cambio_password", current_user.email, "Modificó su contraseña de acceso")
     
     cuerpo_del_correo = f"""
     <div style="font-family: sans-serif; background-color: #111; color: #fff; padding: 20px; border: 4px solid #ff3333;">

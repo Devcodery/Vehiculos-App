@@ -4,6 +4,7 @@ from sqlmodel import Session, select
 from database import get_session
 from models import User
 from security import verificar_password, create_access_token
+from services.audit_logger import log_action
 
 router = APIRouter(prefix="/auth", tags=["Autenticación"])
 
@@ -19,6 +20,7 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends(), session: Sessi
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Credenciales invalidas")
     
     access_token = create_access_token(data={"sub": user.email, "id": user.user_id})
+    log_action("auth", "inicio_sesion", user.email, f"Usuario {user.nombre} inició sesión correctamente")
     
     return {
         "access_token": access_token, 

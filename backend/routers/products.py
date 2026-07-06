@@ -6,6 +6,7 @@ from sqlmodel import Session, select
 from database import get_session
 from models import Product, User
 from security import get_current_user, MEDIA_ROOT
+from services.audit_logger import log_action
 
 router = APIRouter(prefix="/productos", tags=["Productos"])
 
@@ -16,6 +17,7 @@ async def create_product(marca: str = Form(...),
                          referencia: Optional[str] = Form(None),
                          categoria: Optional[str] = Form(None),
                          archivo_foto: Optional[UploadFile] = File(None),
+                         current_user: User = Depends(get_current_user),
                          session: Session = Depends(get_session)):
     
     db_path = None
@@ -45,6 +47,7 @@ async def create_product(marca: str = Form(...),
     session.add(new_product)
     session.commit()
     session.refresh(new_product)
+    log_action("products", "creacion_producto", current_user.email, f"Creado producto {new_product.nombre} ({new_product.marca}) - Ref: {new_product.referencia}")
     return new_product
 
 @router.get("/", response_model=list[Product])
@@ -62,6 +65,7 @@ async def update_product(producto_id: int,
                          referencia: Optional[str] = Form(None),
                          categoria: Optional[str] = Form(None),
                          archivo_foto: Optional[UploadFile] = File(None),
+                         current_user: User = Depends(get_current_user),
                          session: Session = Depends(get_session)):
     product = session.get(Product, producto_id)
     if not product:
@@ -93,13 +97,17 @@ async def update_product(producto_id: int,
     session.add(product)
     session.commit()
     session.refresh(product)
+    log_action("products", "actualizacion_producto", current_user.email, f"Actualizado producto {product.producto_id} - {product.nombre} ({product.marca})")
     return product
 
 @router.delete("/{producto_id}")
-async def delete_product(producto_id: int, session: Session = Depends(get_session)):
+async def delete_product(producto_id: int,
+                         current_user: User = Depends(get_current_user),
+                         session: Session = Depends(get_session)):
     product = session.get(Product, producto_id)
     if not product:
         raise HTTPException(status_code=404, detail="Producto no encontrado")
     session.delete(product)
     session.commit()
+    log_action("products", "eliminacion_producto", current_user.email, f"Eliminado producto {producto_id} - {product.nombre} ({product.marca})")
     return {"mensaje": "Producto eliminado con éxito"}
