@@ -5,6 +5,9 @@ import RegistroUsuariosView from '@/views/RegistroUsuariosView.vue'
 import { useAuthStore } from '@/stores/auth'
 import MiCuentaView from '@/views/MiCuentaView.vue'
 import ListaProductosView from '@/views/ListaProductosView.vue'
+import ServiciosView from '@/views/ServiciosView.vue'
+import TipoServicioView from '@/views/TipoServicioView.vue'
+import VehiculoDetalleView from '@/views/VehiculoDetalleView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -37,27 +40,42 @@ const router = createRouter({
       name: 'ListaProductos',
       component: ListaProductosView,
       meta: {requiresAuth: true}
+    },
+    {
+      path: '/historial-servicios',
+      name: 'HistorialServicios',
+      component: ServiciosView,
+      meta: {requiresAuth: true}
+    },
+    {
+      path: '/tipos-servicios',
+      name: 'TiposServicio',
+      component: TipoServicioView,
+      meta: {requiresAuth: true}
+    },
+    {
+      path: '/vehiculo/:id',
+      name: 'VehiculoDetalle',
+      component: VehiculoDetalleView,
+      meta: {requiresAuth: true}
     }
   ]
 })
 
 // El "Guarda" del Router: si no hay token, te manda al login
-router.beforeEach((to, from, next) => {
+router.beforeEach((to, from) => {
   const authStore = useAuthStore()
   
   // A. Si la ruta requiere estar logueado y no lo estás -> Al Login
   if (to.meta.requiresAuth && !authStore.isAuthenticated) {
-    return next('/login')
+    return '/login'
   }
 
   // B. Si la ruta es solo para ADMINS y tu rol es otro -> Te mandamos al garaje
   if (to.meta.requiresAdmin && authStore.user?.rol !== 'admin') {
     alert("Acceso denegado: Solo para administradores.")
-    return next('/')
+    return '/'
   }
-
-  // C. Si todo está bien, pasa
-  next()
 })
 
 export default router
