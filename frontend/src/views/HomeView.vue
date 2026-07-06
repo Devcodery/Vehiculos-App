@@ -104,6 +104,7 @@ import { ref, onMounted } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import { useRouter } from 'vue-router'
 import api from '@/services/api'
+import { useNotificationStore } from '@/stores/notification'
 import CarModal from '@/components/CarModal.vue'
 import ProductModal from '@/components/ProductModal.vue'
 import ServiceTypeModal from '@/components/ServiceTypeModal.vue'
@@ -112,6 +113,7 @@ import UpdateKmModal from '@/components/UpdateKmModal.vue'
 
 const authStore = useAuthStore()
 const router = useRouter()
+const notificationStore = useNotificationStore()
 
 const cars = ref([])
 const showCarModal = ref(false)
@@ -146,7 +148,7 @@ const enviarParcheVehiculo = async (idIdentificador, datosCambiados) => {
     return { success: true, data: response.data }
   } catch (error) {
     console.error("Error al actualizar el vehículo:", error)
-    alert("Error de comunicación con el servidor.")
+    notificationStore.showError("Error de comunicación con el servidor.")
     return { success: false }
   }
 }
@@ -163,10 +165,11 @@ const procesarNuevoKm = async (nuevoKmValor) => {
   const resultado = await enviarParcheVehiculo(idCoche, { kilometraje: nuevoKmValor })
 
   if (resultado.success) {
+    notificationStore.showSuccess("¡Kilometraje actualizado con éxito!")
     coche.kilometraje = nuevoKmValor
     showKmModal.value = false
   } else {
-    alert("Error al guardar en la base de datos.")
+    notificationStore.showError("Error al guardar en la base de datos.")
   }
 }
 

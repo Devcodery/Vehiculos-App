@@ -59,8 +59,10 @@
 <script setup>
 import { ref } from 'vue'
 import api from '@/services/api'
+import { useNotificationStore } from '@/stores/notification'
 
 const emit = defineEmits(['close', 'refreshGarage'])
+const notificationStore = useNotificationStore()
 
 const carForm = ref({
   marca: '',
@@ -99,12 +101,13 @@ const saveCar = async () => {
       headers: { 'Content-Type': 'multipart/form-data' }
     })
 
+    notificationStore.showSuccess("¡Vehículo registrado con éxito!")
     emit('refreshGarage')
     cerrar()
 
   } catch (error) {
     console.error("Error al guardar el coche:", error)
-    alert("Hubo un error al guardar el vehículo. Revisa la consola.")
+    notificationStore.showError("Hubo un error al guardar el vehículo. Revisa la consola.")
   }
 }
 </script>

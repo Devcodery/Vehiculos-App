@@ -171,6 +171,7 @@
 <script setup>
 import { ref, defineProps, defineEmits } from 'vue'
 import api from '@/services/api'
+import { useNotificationStore } from '@/stores/notification'
 
 const props = defineProps({
   show: Boolean,
@@ -178,6 +179,7 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['close', 'updated', 'deleted'])
+const notificationStore = useNotificationStore()
 
 const isEditing = ref(false)
 const tiposRevision = ref([])
@@ -259,12 +261,12 @@ const saveChanges = async () => {
 
     const response = await api.patch(`/revisiones/${props.service.revision_id}`, payload)
 
-    alert("¡Servicio actualizado con éxito!")
+    notificationStore.showSuccess("¡Servicio actualizado con éxito!")
     isEditing.value = false
     emit('updated', response.data)
   } catch (error) {
     console.error("Error al actualizar la revisión:", error)
-    alert("Error al guardar los cambios en el servidor.")
+    notificationStore.showError("Error al guardar los cambios en el servidor.")
   }
 }
 
@@ -275,11 +277,11 @@ const eliminarServicio = async () => {
 
   try {
     await api.delete(`/revisiones/${props.service.revision_id}`)
-    alert("¡Servicio eliminado con éxito!")
+    notificationStore.showSuccess("¡Servicio eliminado con éxito!")
     emit('deleted', props.service.revision_id)
   } catch (error) {
     console.error("Error al eliminar la revisión:", error)
-    alert("Error al intentar eliminar del servidor.")
+    notificationStore.showError("Error al intentar eliminar del servidor.")
   }
 }
 

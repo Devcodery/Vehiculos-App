@@ -50,8 +50,10 @@
 <script setup>
 import { ref } from 'vue'
 import api from '@/services/api'
+import { useNotificationStore } from '@/stores/notification'
 
 const emit = defineEmits(['close', 'refreshServices'])
+const notificationStore = useNotificationStore()
 
 const serviceTypeForm = ref({
   nombre: '',
@@ -75,12 +77,13 @@ const saveService = async () => {
 
     await api.post('/revisiones/tipos/', payload)
 
+    notificationStore.showSuccess("¡Tipo de servicio registrado con éxito!")
     emit('refreshServices')
     cerrar()
 
   } catch (error) {
     console.error("Error al guardar el tipo de servicio:", error)
-    alert("Hubo un error al guardar el tipo de servicio. Revisa la consola.")
+    notificationStore.showError("Hubo un error al guardar el tipo de servicio. Revisa la consola.")
   }
 }
 </script>

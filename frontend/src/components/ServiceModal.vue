@@ -94,8 +94,10 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import api from '@/services/api'
+import { useNotificationStore } from '@/stores/notification'
 
 const emit = defineEmits(['close', 'refreshServices'])
+const notificationStore = useNotificationStore()
 
 const vehiculos = ref([])
 const tiposRevision = ref([])
@@ -159,12 +161,13 @@ const saveService = async () => {
 
     await api.post('/revisiones/', payload)
     
+    notificationStore.showSuccess("¡Servicio registrado con éxito!")
     emit('refreshServices')
     cerrar()
 
   } catch (error) {
     console.error("Error al registrar servicio:", error)
-    alert("Hubo un error al registrar el servicio. Revisa la consola.")
+    notificationStore.showError("Hubo un error al registrar el servicio. Revisa la consola.")
   }
 }
 </script>

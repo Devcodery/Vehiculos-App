@@ -3,6 +3,7 @@ import HomeView from '@/views/HomeView.vue'
 import LoginView from '@/views/LoginView.vue'
 import RegistroUsuariosView from '@/views/RegistroUsuariosView.vue'
 import { useAuthStore } from '@/stores/auth'
+import { useNotificationStore } from '@/stores/notification'
 import MiCuentaView from '@/views/MiCuentaView.vue'
 import ListaProductosView from '@/views/ListaProductosView.vue'
 import ServiciosView from '@/views/ServiciosView.vue'
@@ -64,13 +65,14 @@ const router = createRouter({
 
 router.beforeEach((to, from) => {
   const authStore = useAuthStore()
+  const notificationStore = useNotificationStore()
   
   if (to.meta.requiresAuth && !authStore.isAuthenticated) {
     return '/login'
   }
 
   if (to.meta.requiresAdmin && authStore.user?.rol !== 'admin') {
-    alert("Acceso denegado: Solo para administradores.")
+    notificationStore.showError("Acceso denegado: Solo para administradores.")
     return '/'
   }
 })

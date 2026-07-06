@@ -22,6 +22,7 @@
   </template>
 
   <RouterView />
+  <ToastContainer />
 </template>
 
 <script setup>
@@ -29,6 +30,7 @@ import { ref } from 'vue'
 import { RouterView, useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import SidebarMenu from '@/components/SideBarMenuModal.vue'
+import ToastContainer from '@/components/ToastContainer.vue'
 
 const route = useRoute()
 const router = useRouter()
