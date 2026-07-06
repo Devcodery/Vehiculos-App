@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import date, datetime, timezone
 from typing import Optional, List
 from sqlmodel import SQLModel, Field, Relationship
 
@@ -86,3 +86,11 @@ class Revision(SQLModel, table=True):
         back_populates="revisiones", 
         link_model=RevisionProducts
     )
+
+# --- 7. ENTIDAD ALERTA DE SERVICIO (Para controlar notificaciones recurrentes) ---
+class ServiceAlert(SQLModel, table=True):
+    alert_id: Optional[int] = Field(default=None, primary_key=True)
+    vehiculo_id: str = Field(index=True)
+    tipo_revision_id: int = Field(index=True)
+    estado: str  # "PRÓXIMO" o "VENCIDO"
+    ultimo_envio: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
