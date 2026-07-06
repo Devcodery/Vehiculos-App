@@ -171,6 +171,7 @@ label, .label-form {
     border: 2px solid #fff !important;
     outline: none !important;
     transition: border-color 0.2s ease;
+    font-family: 'Orbitron', sans-serif !important;
 }
 
 .input-form:focus {
@@ -180,6 +181,6 @@ label, .label-form {
 textarea.input-form {
     resize: vertical;
     box-sizing: border-box;
-    font-family: 'Roboto', sans-serif;
+    font-family: 'Orbitron', sans-serif !important;
 }
 </style>
