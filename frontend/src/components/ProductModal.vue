@@ -215,6 +215,7 @@ label, .label-form {
     transition: border-color 0.2s ease;
     width: 100%;
     box-sizing: border-box;
+    font-family: 'Orbitron', sans-serif !important;
 }
 
 .input-form:focus, .file-input:focus, .select-form:focus {
@@ -225,6 +226,6 @@ label, .label-form {
 textarea.input-form {
     resize: vertical;
     box-sizing: border-box;
-    font-family: 'Roboto', sans-serif;
+    font-family: 'Orbitron', sans-serif !important;
 }
 </style>
