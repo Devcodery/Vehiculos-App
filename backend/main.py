@@ -1,4 +1,5 @@
 from contextlib import asynccontextmanager
+import asyncio
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
@@ -19,6 +20,7 @@ from routers.users import router as users_router
 from routers.vehicles import router as vehicles_router
 from routers.products import router as products_router
 from routers.revision import router as revision_router
+from services.alert_scheduler import start_alert_scheduler
 
 # --- LIFESPAN ---
 
@@ -27,6 +29,7 @@ async def lifespan(app: FastAPI):
     # --- ACCIONES AL ARRANCAR (STARTUP) ---
     print("Arrancando la API y verificando tablas...")
     create_db_and_tables()
+    asyncio.create_task(start_alert_scheduler())
     
     with Session(engine) as session:
         # Preguntamos: ¿Hay algún usuario en la tabla?
