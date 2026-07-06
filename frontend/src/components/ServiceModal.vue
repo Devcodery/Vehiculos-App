@@ -122,8 +122,8 @@ const cerrar = () => {
 const fetchDropdownData = async () => {
   try {
     const [vehiculosRes, tiposRes, productosRes] = await Promise.all([
-      api.get('/mis-vehiculos/'),
-      api.get('/revisiones/tipos/mis/'),
+      api.get('/vehiculos/'),
+      api.get('/revisiones/tipos/'),
       api.get('/productos/')
     ])
     
@@ -183,9 +183,15 @@ const saveService = async () => {
   display: flex; justify-content: center; align-items: center; z-index: 1000;
 }
 .modal-content {
-  background: #111 !important; padding: 30px; width: 90%; max-width: 600px;
-  border: 4px solid #ff00ff !important; box-shadow: 12px 12px 0 #000, 0 0 30px rgba(255, 0, 255, 0.3) !important;
-  max-height: 95vh; overflow-y: auto;
+  background: #111 !important; 
+  padding: 30px; 
+  width: 90%; 
+  max-width: 600px;
+  border: 4px solid #ff00ff !important; 
+  box-shadow: 12px 12px 0 #000, 0 0 30px rgba(255, 0, 255, 0.3) !important;
+  max-height: 95vh; 
+  overflow-y: auto;
+  box-sizing: border-box;
 }
 
 .modal-header {
@@ -275,7 +281,11 @@ const saveService = async () => {
 .cancel-btn:hover, .save-btn:hover { transform: translate(-3px, -3px); }
 
 /* --- TU DISEÑO DE CLASES --- */
-.input-group { display: grid; margin: 0.5em; }
+.input-group { 
+  display: flex; 
+  flex-direction: column;
+  margin: 0; /* Quitamos el margen que rompía la rejilla */
+}
 label, .label-form {
   color: #00e5ff !important;
   font-family: 'Bangers', cursive !important;
@@ -285,15 +295,18 @@ label, .label-form {
   margin: 0.35em;
 }
 .input-form {
+    width: 100% !important; /* Obliga a ocupar el ancho de su columna */
+    box-sizing: border-box !important; /* Cuenta el borde hacia adentro */
     padding: 10px 12px !important;
     background: #000 !important;
     color: #ffffff !important;
     border: 2px solid #fff !important;
     outline: none !important;
     transition: border-color 0.2s ease;
+    font-family: 'Orbitron', sans-serif !important;
 }
 .input-form:focus { border-color: #00e5ff !important; }
-textarea.input-form { resize: vertical; box-sizing: border-box; font-family: 'Roboto', sans-serif; }
+textarea.input-form { resize: vertical; box-sizing: border-box; font-family: 'Orbitron', sans-serif !important; }
 .select-form { cursor: pointer; }
 
 /* --- LIMPIADOR DE FLECHAS --- */
