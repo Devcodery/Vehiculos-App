@@ -33,7 +33,12 @@
                 </button>
               </div>
 
-              <button @click="verVehiculo(car.matricula)" class="view-btn cell-shaded">Ver</button>
+              <div class="card-action-row">
+                <button @click="verVehiculo(car.matricula)" class="view-btn cell-shaded">Ver</button>
+                <button @click="eliminarVehiculo(car)" class="delete-btn cell-shaded" title="Eliminar vehículo">
+                  <i class="fa-solid fa-trash"></i>
+                </button>
+              </div>
             </div>
 
             <div v-if="cars.length === 0" class="car-card cell-shaded" style="justify-content: center; color: #aaa;">
@@ -177,6 +182,20 @@ const verVehiculo = (matricula) => {
   router.push(`/vehiculo/${matricula}`)
 }
 
+const eliminarVehiculo = async (car) => {
+  const confirmacion = window.confirm(`¿Estás seguro de que deseas eliminar el vehículo ${car.marca} ${car.modelo} (${car.matricula})? Se borrarán sus servicios registrados y alertas.`)
+  if (!confirmacion) return
+
+  try {
+    await api.delete(`/vehiculos/${car.matricula}`)
+    notificationStore.showSuccess("Vehículo eliminado con éxito.")
+    fetchVehiculos()
+  } catch (error) {
+    console.error("Error al eliminar vehículo:", error)
+    notificationStore.showError(error.response?.data?.detail || "Error al eliminar el vehículo.")
+  }
+}
+
 onMounted(() => {
   fetchVehiculos()
 })
@@ -289,19 +308,41 @@ const verDetallesVehiculo = (matricula) => {
   font-size: 0.9rem;
 }
 
-.view-btn {
+.card-action-row {
+  display: flex;
+  gap: 10px;
   width: 100%;
-  margin-top: auto; 
+  margin-top: auto;
+}
+
+.view-btn {
+  flex-grow: 1;
   padding: 10px;
   font-family: 'Bangers', cursive;
   font-size: 1.2rem;
   text-transform: uppercase;
-  
 }
 
 .view-btn:hover {
   background: var(--neon-blue);
   color: #000;
+}
+
+.delete-btn {
+  background: #ff3366;
+  color: #fff;
+  border: 3px solid #000;
+  padding: 10px 15px;
+  font-size: 1.1rem;
+  cursor: pointer;
+  transition: transform 0.1s, background-color 0.2s;
+  box-shadow: 3px 3px 0 #000;
+}
+
+.delete-btn:hover {
+  background: #ff0044;
+  transform: translate(-2px, -2px);
+  box-shadow: 5px 5px 0 #000;
 }
 
 

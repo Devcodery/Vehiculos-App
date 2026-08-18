@@ -63,9 +63,14 @@
                         {{ mensaje }}
                     </div>
 
-                    <button type="submit" class="save-btn cell-shaded" :disabled="guardando">
-                        <i class="fa-solid fa-floppy-disk"></i> {{ guardando ? 'ACTUALIZANDO...' : 'ACTUALIZAR FICHA' }}
-                    </button>
+                    <div class="form-actions">
+                        <button type="submit" class="save-btn cell-shaded" :disabled="guardando || eliminando">
+                            <i class="fa-solid fa-floppy-disk"></i> {{ guardando ? 'ACTUALIZANDO...' : 'ACTUALIZAR FICHA' }}
+                        </button>
+                        <button type="button" @click="eliminarVehiculo" class="delete-car-btn cell-shaded" :disabled="guardando || eliminando">
+                            <i class="fa-solid fa-trash"></i> {{ eliminando ? 'ELIMINANDO...' : 'ELIMINAR VEHÍCULO' }}
+                        </button>
+                    </div>
                 </form>
             </section>
 
@@ -159,9 +164,14 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import api from '@/services/api'
+import { useNotificationStore } from '@/stores/notification'
 import ServiceDetailsModal from '@/components/ServiceDetailsModal.vue'
+
+const router = useRouter()
+const notificationStore = useNotificationStore()
+const eliminando = ref(false)
 
 const showDetailsModal = ref(false)
 const selectedService = ref(null)
@@ -271,6 +281,24 @@ const guardarCambios = async () => {
         tipoMensaje.value = 'error'
     } finally {
         guardando.value = false
+    }
+}
+
+const eliminarVehiculo = async () => {
+    const confirmacion = window.confirm(`¿Estás seguro de que deseas eliminar el vehículo ${formulario.value.marca || ''} ${formulario.value.modelo || ''} (${formulario.value.matricula})? Esta acción borrará también todas sus revisiones y alertas.`)
+    if (!confirmacion) return
+
+    eliminando.value = true
+    try {
+        await api.delete(`/vehiculos/${formulario.value.matricula}`)
+        notificationStore.showSuccess('Vehículo eliminado con éxito.')
+        router.push('/')
+    } catch (error) {
+        console.error("Error al eliminar vehículo:", error)
+        mensaje.value = error.response?.data?.detail || "Error al eliminar el vehículo."
+        tipoMensaje.value = "error"
+    } finally {
+        eliminando.value = false
     }
 }
 
@@ -472,7 +500,15 @@ label,
     cursor: pointer;
 }
 
+.form-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 10px;
+}
+
 .save-btn {
+    width: 100%;
     background: #ff00ff !important;
     color: #000 !important;
     font-family: 'Bangers', cursive;
@@ -480,7 +516,6 @@ label,
     padding: 12px;
     border: 3px solid #000;
     cursor: pointer;
-    margin-top: 10px;
     transition: transform 0.1s;
 }
 
@@ -489,9 +524,28 @@ label,
     box-shadow: 4px 4px 0 #000;
 }
 
-.save-btn:disabled {
-    background: #555;
+.save-btn:disabled,
+.delete-car-btn:disabled {
+    background: #555 !important;
     cursor: not-allowed;
+}
+
+.delete-car-btn {
+    width: 100%;
+    background: #ff3366 !important;
+    color: #fff !important;
+    font-family: 'Bangers', cursive;
+    font-size: 1.3rem;
+    padding: 10px;
+    border: 3px solid #000;
+    cursor: pointer;
+    transition: transform 0.1s;
+}
+
+.delete-car-btn:hover:not(:disabled) {
+    background: #ff0044 !important;
+    transform: translate(-3px, -3px);
+    box-shadow: 4px 4px 0 #000;
 }
 
 .mensaje-alerta {

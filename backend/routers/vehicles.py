@@ -130,3 +130,22 @@ async def actualizar_vehiculo(
     session.refresh(coche)
     log_action("vehicles", "actualizacion_vehiculo", current_user.email, f"Actualizado coche {coche.matricula} a kilometraje {coche.kilometraje} km")
     return coche
+
+
+@router.delete("/{vehiculo_id}")
+async def eliminar_vehiculo(
+    vehiculo_id: str,
+    session: Session = Depends(get_session),
+    current_user: User = Depends(get_current_user)
+):
+    coche = session.exec(
+        select(Vehicle).where(Vehicle.matricula == vehiculo_id, Vehicle.user_id == current_user.user_id)
+    ).first()
+    
+    if not coche:
+        raise HTTPException(status_code=404, detail="Vehículo no encontrado o acceso denegado")
+    
+    session.delete(coche)
+    session.commit()
+    log_action("vehicles", "eliminacion_vehiculo", current_user.email, f"Eliminado coche {coche.matricula}")
+    return {"message": "Vehículo eliminado correctamente"}
