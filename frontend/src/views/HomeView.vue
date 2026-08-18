@@ -35,7 +35,7 @@
 
               <div class="card-action-row">
                 <button @click="verVehiculo(car.matricula)" class="view-btn cell-shaded">Ver</button>
-                <button @click="eliminarVehiculo(car)" class="delete-btn cell-shaded" title="Eliminar vehículo">
+                <button @click="abrirModalEliminar(car)" class="delete-btn cell-shaded" title="Eliminar vehículo">
                   <i class="fa-solid fa-trash"></i>
                 </button>
               </div>
@@ -101,6 +101,18 @@
       @close="showKmModal = false"
       @save="procesarNuevoKm"
     />
+
+    <ConfirmModal
+      :show="showConfirmDelete"
+      titulo="¿DESTRUIR VEHÍCULO?"
+      :car="cocheAEliminar"
+      mensaje="¿Estás seguro de que deseas eliminar este vehículo de tu garaje?"
+      advertencia="Esta acción eliminará permanentemente todas sus revisiones de mantenimiento, historial de gastos y alertas."
+      textoConfirmar="SÍ, ELIMINAR"
+      :loading="eliminandoCoche"
+      @close="showConfirmDelete = false"
+      @confirm="confirmarEliminacion"
+    />
   </div>
 </template>
 
@@ -115,6 +127,7 @@ import ProductModal from '@/components/ProductModal.vue'
 import ServiceTypeModal from '@/components/ServiceTypeModal.vue'
 import ServiceModal from '@/components/ServiceModal.vue'
 import UpdateKmModal from '@/components/UpdateKmModal.vue'
+import ConfirmModal from '@/components/ConfirmModal.vue'
 
 const authStore = useAuthStore()
 const router = useRouter()
@@ -127,6 +140,10 @@ const showServiceTypeModal = ref(false)
 const showServiceModal = ref(false)
 const showKmModal = ref(false)
 const cocheSeleccionadoParaKm = ref(null)
+
+const showConfirmDelete = ref(false)
+const cocheAEliminar = ref(null)
+const eliminandoCoche = ref(false)
 
 
 const fetchVehiculos = async () => {
@@ -182,17 +199,25 @@ const verVehiculo = (matricula) => {
   router.push(`/vehiculo/${matricula}`)
 }
 
-const eliminarVehiculo = async (car) => {
-  const confirmacion = window.confirm(`¿Estás seguro de que deseas eliminar el vehículo ${car.marca} ${car.modelo} (${car.matricula})? Se borrarán sus servicios registrados y alertas.`)
-  if (!confirmacion) return
+const abrirModalEliminar = (car) => {
+  cocheAEliminar.value = car
+  showConfirmDelete.value = true
+}
 
+const confirmarEliminacion = async () => {
+  if (!cocheAEliminar.value) return
+  eliminandoCoche.value = true
   try {
-    await api.delete(`/vehiculos/${car.matricula}`)
-    notificationStore.showSuccess("Vehículo eliminado con éxito.")
+    await api.delete(`/vehiculos/${cocheAEliminar.value.matricula}`)
+    notificationStore.showSuccess(`¡Vehículo ${cocheAEliminar.value.marca} ${cocheAEliminar.value.modelo} (${cocheAEliminar.value.matricula}) eliminado del garaje!`)
+    showConfirmDelete.value = false
+    cocheAEliminar.value = null
     fetchVehiculos()
   } catch (error) {
     console.error("Error al eliminar vehículo:", error)
     notificationStore.showError(error.response?.data?.detail || "Error al eliminar el vehículo.")
+  } finally {
+    eliminandoCoche.value = false
   }
 }
 

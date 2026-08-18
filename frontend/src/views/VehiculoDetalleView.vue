@@ -67,7 +67,7 @@
                         <button type="submit" class="save-btn cell-shaded" :disabled="guardando || eliminando">
                             <i class="fa-solid fa-floppy-disk"></i> {{ guardando ? 'ACTUALIZANDO...' : 'ACTUALIZAR FICHA' }}
                         </button>
-                        <button type="button" @click="eliminarVehiculo" class="delete-car-btn cell-shaded" :disabled="guardando || eliminando">
+                        <button type="button" @click="abrirModalEliminar" class="delete-car-btn cell-shaded" :disabled="guardando || eliminando">
                             <i class="fa-solid fa-trash"></i> {{ eliminando ? 'ELIMINANDO...' : 'ELIMINAR VEHÍCULO' }}
                         </button>
                     </div>
@@ -159,6 +159,18 @@
             @updated="onServiceUpdated"
             @deleted="onServiceDeleted"
         />
+
+        <ConfirmModal
+            :show="showConfirmDelete"
+            titulo="¿ELIMINAR FICHA DEL VEHÍCULO?"
+            :car="formulario"
+            mensaje="¿Estás seguro de que deseas eliminar permanentemente el expediente de este vehículo?"
+            advertencia="Esta acción eliminará el vehículo y todo su historial de revisiones, facturas e intervenciones de forma irreversible."
+            textoConfirmar="SÍ, DESTRUIR REGISTRO"
+            :loading="eliminando"
+            @close="showConfirmDelete = false"
+            @confirm="confirmarEliminacion"
+        />
     </div>
 </template>
 
@@ -168,10 +180,12 @@ import { useRoute, useRouter } from 'vue-router'
 import api from '@/services/api'
 import { useNotificationStore } from '@/stores/notification'
 import ServiceDetailsModal from '@/components/ServiceDetailsModal.vue'
+import ConfirmModal from '@/components/ConfirmModal.vue'
 
 const router = useRouter()
 const notificationStore = useNotificationStore()
 const eliminando = ref(false)
+const showConfirmDelete = ref(false)
 
 const showDetailsModal = ref(false)
 const selectedService = ref(null)
@@ -284,19 +298,22 @@ const guardarCambios = async () => {
     }
 }
 
-const eliminarVehiculo = async () => {
-    const confirmacion = window.confirm(`¿Estás seguro de que deseas eliminar el vehículo ${formulario.value.marca || ''} ${formulario.value.modelo || ''} (${formulario.value.matricula})? Esta acción borrará también todas sus revisiones y alertas.`)
-    if (!confirmacion) return
+const abrirModalEliminar = () => {
+    showConfirmDelete.value = true
+}
 
+const confirmarEliminacion = async () => {
     eliminando.value = true
     try {
         await api.delete(`/vehiculos/${formulario.value.matricula}`)
-        notificationStore.showSuccess('Vehículo eliminado con éxito.')
+        notificationStore.showSuccess(`¡Ficha del vehículo ${formulario.value.matricula} eliminada con éxito!`)
+        showConfirmDelete.value = false
         router.push('/')
     } catch (error) {
         console.error("Error al eliminar vehículo:", error)
         mensaje.value = error.response?.data?.detail || "Error al eliminar el vehículo."
         tipoMensaje.value = "error"
+        showConfirmDelete.value = false
     } finally {
         eliminando.value = false
     }
