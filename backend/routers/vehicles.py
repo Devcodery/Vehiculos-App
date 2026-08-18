@@ -5,9 +5,10 @@ from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, Form
 from pydantic import BaseModel
 from sqlmodel import Session, select
 from database import get_session
-from models import Vehicle, User
+from models import Vehicle, User, Revision, RevisionProducts, ServiceAlert
 from security import get_current_user, MEDIA_ROOT
 from services.audit_logger import log_action
+
 
 router = APIRouter(prefix="/vehiculos", tags=["Vehículos"])
 
@@ -133,11 +134,9 @@ async def actualizar_vehiculo(
 
 
 @router.delete("/{vehiculo_id}")
-async def eliminar_vehiculo(
-    vehiculo_id: str,
-    session: Session = Depends(get_session),
-    current_user: User = Depends(get_current_user)
-):
+async def delete_vehicle(vehiculo_id: str,
+                         session: Session = Depends(get_session),
+                         current_user: User = Depends(get_current_user)):
     coche = session.exec(
         select(Vehicle).where(Vehicle.matricula == vehiculo_id, Vehicle.user_id == current_user.user_id)
     ).first()
@@ -145,7 +144,27 @@ async def eliminar_vehiculo(
     if not coche:
         raise HTTPException(status_code=404, detail="Vehículo no encontrado o acceso denegado")
     
+    # Save vehicle details for log_action before session.delete & session.commit expire the object
+    vehiculo_info = f"{coche.matricula} ({coche.marca} {coche.modelo})"
+    
+    revisions = session.exec(
+        select(Revision).where(Revision.vehiculo_id == vehiculo_id)
+    ).all()
+    for rev in revisions:
+        rev_products = session.exec(
+            select(RevisionProducts).where(RevisionProducts.revision_id == rev.revision_id)
+        ).all()
+        for rp in rev_products:
+            session.delete(rp)
+        session.delete(rev)
+
+    alerts = session.exec(
+        select(ServiceAlert).where(ServiceAlert.vehiculo_id == vehiculo_id)
+    ).all()
+    for alert in alerts:
+        session.delete(alert)
+        
     session.delete(coche)
     session.commit()
-    log_action("vehicles", "eliminacion_vehiculo", current_user.email, f"Eliminado coche {coche.matricula}")
-    return {"message": "Vehículo eliminado correctamente"}
+    log_action("vehicles", "eliminacion_vehiculo", current_user.email, f"Eliminado vehículo {vehiculo_info}")
+    return {"mensaje": "Vehículo eliminado con éxito"}
