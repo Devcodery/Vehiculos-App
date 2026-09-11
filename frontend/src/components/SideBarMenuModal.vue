@@ -14,6 +14,9 @@
             <button @click="navegarA('MiCuenta')" class="nav-item">
                 <i class="fa-solid fa-circle-user"></i> Mi Cuenta
             </button>
+            <button v-if="authStore.user?.rol === 'admin'" @click="navegarA('GestionUsuarios')" class="nav-item">
+                <i class="fa-solid fa-users-gear"></i> Gestión de Usuarios
+            </button>
             <button v-if="authStore.user?.rol === 'admin'" @click="navegarA('RegistroUsuarios')" class="nav-item">
                 <i class="fa-solid fa-user-plus"></i> Alta de Usuario
             </button>

@@ -2,6 +2,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 import HomeView from '@/views/HomeView.vue'
 import LoginView from '@/views/LoginView.vue'
 import RegistroUsuariosView from '@/views/RegistroUsuariosView.vue'
+import GestionUsuariosView from '@/views/GestionUsuariosView.vue'
 import { useAuthStore } from '@/stores/auth'
 import { useNotificationStore } from '@/stores/notification'
 import MiCuentaView from '@/views/MiCuentaView.vue'
@@ -23,6 +24,12 @@ const router = createRouter({
       name: 'Home',
       component: HomeView,
       meta: { requiresAuth: true }
+    },
+    {
+      path: '/gestion-usuarios',
+      name: 'GestionUsuarios',
+      component: GestionUsuariosView,
+      meta: { requiresAuth: true, requiresAdmin: true }
     },
     {
       path: '/registro-usuarios',
@@ -63,7 +70,7 @@ const router = createRouter({
   ]
 })
 
-router.beforeEach((to, from) => {
+router.beforeEach((to) => {
   const authStore = useAuthStore()
   const notificationStore = useNotificationStore()
   

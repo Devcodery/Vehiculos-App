@@ -1,11 +1,13 @@
+import os
+import shutil
 from typing import Optional
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
 from pydantic import BaseModel, EmailStr
 from sqlmodel import Session, select
 from database import get_session
-from models import User
-from security import get_current_user, get_password_prehash, pwd_context
+from models import User, Vehicle, Revision, RevisionProducts, ServiceAlert, RevisionType
+from security import get_current_user, get_password_prehash, pwd_context, MEDIA_ROOT
 from services.email_services import enviar_correo_real
 from services.audit_logger import log_action
 
@@ -16,7 +18,13 @@ class UserCreate(BaseModel):
     email: EmailStr
     password: str
     rol: str
-    
+
+class UserRead(BaseModel):
+    user_id: int
+    nombre: str
+    email: EmailStr
+    rol: str
+
 class UserUpdate(BaseModel):
     nombre: Optional[str] = None
     email: Optional[str] = None
@@ -25,7 +33,19 @@ class PasswordUpdate(BaseModel):
     password_actual: str
     password_nueva: str
 
-@router.post("/", response_model=User)
+@router.get("/", response_model=list[UserRead])
+async def list_users(
+    session: Session = Depends(get_session),
+    current_user: User = Depends(get_current_user)
+):
+    if current_user.rol != "admin":
+        raise HTTPException(status_code=403, detail="Acceso denegado: solo administradores pueden ver la lista de usuarios")
+    
+    statement = select(User)
+    users = session.exec(statement).all()
+    return users
+
+@router.post("/", response_model=UserRead)
 async def create_user(user: UserCreate, session: Session = Depends(get_session), current_user: User = Depends(get_current_user)):
     statement = select(User).where(User.email == user.email)
     existing_user = session.exec(statement).first()
@@ -52,6 +72,68 @@ async def create_user(user: UserCreate, session: Session = Depends(get_session),
     session.refresh(finalUser)
     log_action("auth", "creacion_usuario", current_user.email, f"Creado usuario {finalUser.email} con rol {finalUser.rol}")
     return finalUser
+
+@router.delete("/{user_id}")
+async def delete_user(
+    user_id: int,
+    session: Session = Depends(get_session),
+    current_user: User = Depends(get_current_user)
+):
+    if current_user.rol != "admin":
+        raise HTTPException(status_code=403, detail="Solo los administradores pueden eliminar usuarios")
+    
+    if current_user.user_id == user_id:
+        raise HTTPException(status_code=400, detail="No puedes eliminar tu propia cuenta de administrador")
+    
+    user_to_delete = session.get(User, user_id)
+    if not user_to_delete:
+        raise HTTPException(status_code=404, detail="Usuario no encontrado")
+    
+    user_info = f"{user_to_delete.nombre} ({user_to_delete.email})"
+
+    # 1. Desvincular tipos de revisión creados por este usuario para no romper catálogo
+    revision_types = session.exec(
+        select(RevisionType).where(RevisionType.user_id == user_id)
+    ).all()
+    for rt in revision_types:
+        rt.user_id = None
+        session.add(rt)
+
+    # 2. Eliminar vehículos del usuario con sus revisiones, productos y alertas
+    vehicles = session.exec(
+        select(Vehicle).where(Vehicle.user_id == user_id)
+    ).all()
+    for vehicle in vehicles:
+        revisions = session.exec(
+            select(Revision).where(Revision.vehiculo_id == vehicle.matricula)
+        ).all()
+        for rev in revisions:
+            rev_products = session.exec(
+                select(RevisionProducts).where(RevisionProducts.revision_id == rev.revision_id)
+            ).all()
+            for rp in rev_products:
+                session.delete(rp)
+            session.delete(rev)
+
+        alerts = session.exec(
+            select(ServiceAlert).where(ServiceAlert.vehiculo_id == vehicle.matricula)
+        ).all()
+        for alert in alerts:
+            session.delete(alert)
+
+        session.delete(vehicle)
+
+    # 3. Eliminar carpeta multimedia de fotos del usuario si existe
+    user_media_folder = os.path.join(MEDIA_ROOT, f"vehicles/user{user_id}")
+    if os.path.exists(user_media_folder):
+        shutil.rmtree(user_media_folder, ignore_errors=True)
+
+    # 4. Eliminar el usuario
+    session.delete(user_to_delete)
+    session.commit()
+
+    log_action("auth", "eliminacion_usuario", current_user.email, f"Eliminado usuario {user_info} con ID {user_id}")
+    return {"mensaje": f"Usuario {user_info} eliminado con éxito"}
 
 @router.patch("/change", response_model=User)
 async def actualizar_mi_perfil(

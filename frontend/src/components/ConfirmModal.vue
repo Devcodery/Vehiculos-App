@@ -20,6 +20,14 @@
           </div>
         </div>
 
+        <div v-if="userItem" class="user-badge-preview cell-shaded-inner">
+          <div class="user-details">
+            <span class="user-name"><i class="fa-solid fa-circle-user"></i> {{ userItem.nombre }}</span>
+            <span class="user-email"><i class="fa-solid fa-envelope"></i> {{ userItem.email }}</span>
+            <span class="user-role-tag"><i class="fa-solid fa-shield"></i> ROL: {{ userItem.rol?.toUpperCase() }}</span>
+          </div>
+        </div>
+
         <p class="modal-mensaje">{{ mensaje }}</p>
 
         <div v-if="advertencia" class="warning-box">
@@ -50,6 +58,7 @@ const props = defineProps({
   advertencia: { type: String, default: 'Esta acción borrará permanentemente sus historiales de servicio y alertas.' },
   textoConfirmar: { type: String, default: 'SÍ, ELIMINAR' },
   car: { type: Object, default: null },
+  userItem: { type: Object, default: null },
   loading: { type: Boolean, default: false }
 })
 
@@ -176,6 +185,46 @@ const confirmar = () => {
 
 .car-plate strong {
   color: #fff;
+}
+
+.user-badge-preview {
+  background: rgba(0, 0, 0, 0.6);
+  border: 2px dashed #ff3366;
+  padding: 12px 15px;
+}
+
+.user-details {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.user-name {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 1.15rem;
+  font-weight: bold;
+  color: #00e5ff;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.user-email {
+  color: #ffcc00;
+  font-size: 0.95rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: 'Roboto', sans-serif;
+}
+
+.user-role-tag {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 0.85rem;
+  color: #aaa;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .modal-mensaje {
