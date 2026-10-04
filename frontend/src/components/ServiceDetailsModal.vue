@@ -122,8 +122,8 @@
           <div v-for="(prod, index) in selectedProducts" :key="index" class="product-row">
             <select v-model="prod.producto_id" class="input-form select-form" required>
               <option value="" disabled>Elige un producto...</option>
-              <option v-for="item in catalogoProductos" :key="item.producto_id" :value="item.producto_id">
-                {{ item.marca }} - {{ item.nombre }}
+              <option v-for="item in productosFiltrados" :key="item.producto_id" :value="item.producto_id">
+                {{ item.marca }} - {{ item.nombre }} {{ !item.tipo_revision_id ? '(General)' : '' }}
               </option>
             </select>
 
@@ -169,7 +169,7 @@
 </template>
 
 <script setup>
-import { ref, defineProps, defineEmits } from 'vue'
+import { ref, computed, defineProps, defineEmits } from 'vue'
 import api from '@/services/api'
 import { useNotificationStore } from '@/stores/notification'
 
@@ -195,6 +195,16 @@ const editForm = ref({
 })
 
 const selectedProducts = ref([])
+
+const productosFiltrados = computed(() => {
+  if (!editForm.value.tipo_revision_id) {
+    return catalogoProductos.value
+  }
+  const tipoId = parseInt(editForm.value.tipo_revision_id)
+  return catalogoProductos.value.filter(
+    p => p.tipo_revision_id === null || p.tipo_revision_id === undefined || p.tipo_revision_id === tipoId
+  )
+})
 
 const fetchDropdownData = async () => {
   if (tiposRevision.value.length > 0) return

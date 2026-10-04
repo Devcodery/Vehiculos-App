@@ -39,7 +39,9 @@ class Product(SQLModel, table=True):
     imagen: Optional[str] = None
     referencia: Optional[str] = None
     categoria: Optional[str] = None
+    tipo_revision_id: Optional[int] = Field(default=None, foreign_key="revisiontype.tipo_revision_id")
     
+    tipo_revision: Optional["RevisionType"] = Relationship(back_populates="productos")
     revisiones: List["Revision"] = Relationship(
         back_populates="products",
         link_model=RevisionProducts
@@ -55,6 +57,7 @@ class RevisionType(SQLModel, table=True):
     
     creator: Optional[User] = Relationship(back_populates="my_revision_type")
     revisiones: List["Revision"] = Relationship(back_populates="revision_type")
+    productos: List["Product"] = Relationship(back_populates="tipo_revision")
 
 class Revision(SQLModel, table=True):
     revision_id: Optional[int] = Field(default=None, primary_key=True)

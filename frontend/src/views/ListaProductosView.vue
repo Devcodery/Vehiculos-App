@@ -26,13 +26,23 @@
           <option value="TODOS">TODAS LAS CATEGORÍAS</option>
           <option value="Aceites y Fluidos">Aceites y Fluidos</option>
           <option value="Filtros">Filtros</option>
-          <option value="Frenos">Frenos</option>
+          <option value="Discos y Frenos">Discos y Frenos</option>
           <option value="Motor y Escape">Motor y Escape</option>
           <option value="Suspensión y Dirección">Suspensión y Dirección</option>
           <option value="Baterías y Electricidad">Baterías y Electricidad</option>
           <option value="Neumáticos y Llantas">Neumáticos y Llantas</option>
           <option value="Herramientas y Consumibles">Herramientas y Consumibles</option>
           <option value="Otras Piezas">Otras Piezas</option>
+        </select>
+      </div>
+
+      <div class="input-group select-group">
+        <select v-model="filtroTipoServicio" class="brutalist-input select-input">
+          <option value="TODOS">TODOS LOS SERVICIOS</option>
+          <option value="GENERAL">USO GENERAL</option>
+          <option v-for="tipo in tiposRevision" :key="tipo.tipo_revision_id" :value="tipo.tipo_revision_id">
+            {{ tipo.nombre }}
+          </option>
         </select>
       </div>
     </section>
@@ -42,6 +52,12 @@
         
         <div class="product-header">
           <span class="category-badge">{{ prod.categoria || 'Sin categoría' }}</span>
+          <span class="service-badge" v-if="getNombreTipo(prod.tipo_revision_id)">
+            <i class="fa-solid fa-wrench"></i> {{ getNombreTipo(prod.tipo_revision_id) }}
+          </span>
+          <span class="service-badge general-badge" v-else>
+            <i class="fa-solid fa-globe"></i> General
+          </span>
         </div>
 
         <div class="product-image-container cell-shaded-inner">
@@ -95,6 +111,7 @@ import EditProductModal from '@/components/EditProductModal.vue'
 import ProductModal from '@/components/ProductModal.vue'
 
 const productos = ref([])
+const tiposRevision = ref([])
 const cargando = ref(true)
 
 const baseURL = import.meta.env.VITE_API_URL || 'http://localhost:8000'
@@ -108,6 +125,7 @@ const getImagenUrl = (ruta) => {
 
 const busquedaNombre = ref('')
 const filtroCategoria = ref('TODOS')
+const filtroTipoServicio = ref('TODOS')
 
 const showCreateModal = ref(false)
 const showEditModal = ref(false)
@@ -115,34 +133,48 @@ const productoSeleccionado = ref(null)
 
 const fetchProductos = async () => {
   try {
-    const response = await api.get('/productos/')
-    productos.value = response.data
+    const [resProd, resTipos] = await Promise.all([
+      api.get('/productos/'),
+      api.get('/revisiones/tipos/')
+    ])
+    productos.value = resProd.data
+    tiposRevision.value = resTipos.data
   } catch (error) {
-    console.error("Error cargando el catálogo:", error)
+    console.error("Error al cargar productos o tipos:", error)
   } finally {
     cargando.value = false
   }
 }
 
-onMounted(() => {
-  fetchProductos()
-})
+const getNombreTipo = (tipoId) => {
+  if (!tipoId) return null
+  const tipo = tiposRevision.value.find(t => t.tipo_revision_id === tipoId)
+  return tipo ? tipo.nombre : null
+}
 
 const productosFiltrados = computed(() => {
   return productos.value.filter(prod => {
-    
-    const textoBuscado = busquedaNombre.value.toLowerCase()
-    const coincideTexto = 
-      (prod.nombre && prod.nombre.toLowerCase().includes(textoBuscado)) || 
-      (prod.marca && prod.marca.toLowerCase().includes(textoBuscado)) || 
-      (prod.referencia && prod.referencia.toLowerCase().includes(textoBuscado))
-      
-    const coincideCategoria = 
+    const matchesNombre = 
+      prod.nombre.toLowerCase().includes(busquedaNombre.value.toLowerCase()) ||
+      prod.marca.toLowerCase().includes(busquedaNombre.value.toLowerCase()) ||
+      (prod.referencia && prod.referencia.toLowerCase().includes(busquedaNombre.value.toLowerCase()))
+
+    const matchesCategoria = 
       filtroCategoria.value === 'TODOS' || 
-      prod.categoria === filtroCategoria.value
-      
-    return coincideTexto && coincideCategoria
+      prod.categoria === filtroCategoria.value ||
+      (filtroCategoria.value === 'Discos y Frenos' && prod.categoria === 'Frenos')
+
+    const matchesTipo = 
+      filtroTipoServicio.value === 'TODOS' ||
+      (filtroTipoServicio.value === 'GENERAL' && !prod.tipo_revision_id) ||
+      prod.tipo_revision_id === filtroTipoServicio.value
+
+    return matchesNombre && matchesCategoria && matchesTipo
   })
+})
+
+onMounted(() => {
+  fetchProductos()
 })
 
 const openCreateModal = () => {
@@ -281,6 +313,26 @@ const abrirModalEdicion = (producto) => {
   padding: 4px 8px;
   text-transform: uppercase;
   border: 2px solid #000;
+}
+
+.service-badge {
+  background: #ff00ff;
+  color: #fff;
+  font-family: 'Orbitron', sans-serif;
+  font-size: 0.75rem;
+  font-weight: bold;
+  padding: 4px 8px;
+  text-transform: uppercase;
+  border: 2px solid #000;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.general-badge {
+  background: #222;
+  color: #aaa;
+  border-color: #555;
 }
 
 

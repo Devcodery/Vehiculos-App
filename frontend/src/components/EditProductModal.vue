@@ -33,7 +33,7 @@
             <select v-model="formulario.categoria" class="brutalist-input brutalist-select" required>
               <option value="Aceites y Fluidos">Aceites y Fluidos</option>
               <option value="Filtros">Filtros</option>
-              <option value="Frenos">Frenos</option>
+              <option value="Discos y Frenos">Discos y Frenos</option>
               <option value="Motor y Escape">Motor y Escape</option>
               <option value="Suspensión y Dirección">Suspensión y Dirección</option>
               <option value="Baterías y Electricidad">Baterías y Electricidad</option>
@@ -44,8 +44,34 @@
           </div>
         </div>
 
+        <div class="input-group">
+          <label>TIPO DE SERVICIO ASOCIADO</label>
+          <select v-model="formulario.tipo_revision_id" class="brutalist-input brutalist-select">
+            <option :value="null">Cualquiera / General</option>
+            <option v-for="tipo in tiposRevision" :key="tipo.tipo_revision_id" :value="tipo.tipo_revision_id">
+              {{ tipo.nombre }}
+            </option>
+          </select>
+        </div>
+
+        <div class="input-group">
+          <label>IMAGEN DEL PRODUCTO</label>
+          <div class="image-preview-container cell-shaded-inner">
+            <img 
+              v-if="imagenUrl" 
+              :src="imagenUrl" 
+              alt="Imagen del producto" 
+              class="modal-product-img" 
+            />
+            <div v-else class="no-img-placeholder">
+              <i class="fa-solid fa-box-open"></i>
+              <span>SIN IMAGEN ASIGNADA</span>
+            </div>
+          </div>
+        </div>
+
         <div class="input-group upload-group">
-          <label class="label-form">Imagen del Producto:</label>
+          <label class="label-form">Cambiar Imagen:</label>
           <input type="file" @change="handleFileUpload" accept="image/*" class="file-input cell-shaded" />
         </div>
 
@@ -74,7 +100,7 @@
 </template>
 
 <script setup>
-import { ref, watch } from 'vue'
+import { ref, watch, computed, onMounted } from 'vue'
 import api from '@/services/api'
 
 const props = defineProps({
@@ -84,24 +110,60 @@ const props = defineProps({
 
 const emit = defineEmits(['close', 'refresh'])
 
+const tiposRevision = ref([])
+
 const formulario = ref({
   nombre: '',
   marca: '',
   referencia: '',
   categoria: '',
+  tipo_revision_id: null,
   imagen: '',
   detalles: ''
 })
 
 const archivoImagen = ref(null)
+const previewImagen = ref(null)
 const cargando = ref(false)
 const mensaje = ref('')
 const tipoMensaje = ref('')
 
+const baseURL = import.meta.env.VITE_API_URL || 'http://localhost:8000'
+
+const imagenUrl = computed(() => {
+  if (previewImagen.value) {
+    return previewImagen.value
+  }
+  if (!formulario.value.imagen) return null
+  if (formulario.value.imagen.startsWith('http://') || formulario.value.imagen.startsWith('https://')) {
+    return formulario.value.imagen
+  }
+  return `${baseURL}/media/${formulario.value.imagen}`
+})
+
+const fetchTipos = async () => {
+  try {
+    const res = await api.get('/revisiones/tipos/')
+    tiposRevision.value = res.data
+  } catch (error) {
+    console.error("Error cargando tipos de revisión:", error)
+  }
+}
+
+onMounted(() => {
+  fetchTipos()
+})
+
 watch(() => props.producto, (nuevoProducto) => {
   if (nuevoProducto) {
-    formulario.value = { ...nuevoProducto }
+    const cat = nuevoProducto.categoria === 'Frenos' ? 'Discos y Frenos' : nuevoProducto.categoria
+    formulario.value = {
+      ...nuevoProducto,
+      categoria: cat,
+      tipo_revision_id: nuevoProducto.tipo_revision_id ?? null
+    }
     archivoImagen.value = null
+    previewImagen.value = null
   }
 }, { immediate: true })
 
@@ -109,12 +171,14 @@ const handleFileUpload = (event) => {
   const file = event.target.files[0]
   if (file) {
     archivoImagen.value = file
+    previewImagen.value = URL.createObjectURL(file)
   }
 }
 
 const cerrar = () => {
   mensaje.value = ''
   archivoImagen.value = null
+  previewImagen.value = null
   emit('close')
 }
 
@@ -133,6 +197,7 @@ const guardarCambios = async () => {
     if (formulario.value.categoria) {
       formData.append('categoria', formulario.value.categoria)
     }
+    formData.append('tipo_revision_id', formulario.value.tipo_revision_id ? formulario.value.tipo_revision_id : '')
 
     if (archivoImagen.value) {
       formData.append('archivo_foto', archivoImagen.value)
@@ -189,12 +254,48 @@ const eliminarProducto = async () => {
   transform: translate(-50%, -50%);
   width: 90%;
   max-width: 550px;
+  max-height: 90vh;
+  overflow-y: auto;
   background: #111 !important;
   border: 4px solid #ff00ff !important;
   box-shadow: 12px 12px 0 #000, 0 0 30px rgba(255, 0, 255, 0.3) !important;
   z-index: 1101;
   display: flex;
   flex-direction: column;
+}
+
+.image-preview-container {
+  height: 180px;
+  background: #000;
+  border: 2px solid #555;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+  position: relative;
+  box-sizing: border-box;
+}
+
+.modal-product-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  background: #080808;
+}
+
+.no-img-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  color: #666;
+  font-family: 'Orbitron', sans-serif;
+  font-size: 0.9rem;
+}
+
+.no-img-placeholder i {
+  font-size: 2.2rem;
+  color: #444;
 }
 
 .modal-header {

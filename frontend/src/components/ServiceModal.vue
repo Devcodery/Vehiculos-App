@@ -50,17 +50,22 @@
           <div class="products-section cell-shaded-inner">
             <div class="products-header">
               <h3 class="products-title">MATERIALES UTILIZADOS</h3>
-              <button type="button" class="add-product-btn cell-shaded" @click="addProductRow">
+              <button 
+                type="button" 
+                class="add-product-btn cell-shaded" 
+                @click="addProductRow"
+                :disabled="!serviceForm.tipo_revision_id"
+                :title="!serviceForm.tipo_revision_id ? 'Selecciona primero un tipo de servicio' : 'Añadir pieza'"
+              >
                 <i class="fa-solid fa-plus"></i> Añadir Pieza
               </button>
             </div>
 
             <div v-for="(prod, index) in selectedProducts" :key="index" class="product-row">
-              
               <select v-model="prod.producto_id" class="input-form select-form" required>
                 <option value="" disabled>Elige un producto...</option>
-                <option v-for="item in catalogoProductos" :key="item.producto_id" :value="item.producto_id">
-                  {{ item.marca }} - {{ item.nombre }}
+                <option v-for="item in productosFiltrados" :key="item.producto_id" :value="item.producto_id">
+                  {{ item.marca }} - {{ item.nombre }} {{ !item.tipo_revision_id ? '(General)' : '' }}
                 </option>
               </select>
 
@@ -71,7 +76,13 @@
               </button>
             </div>
             
-            <p v-if="selectedProducts.length === 0" class="no-products-text">
+            <p v-if="!serviceForm.tipo_revision_id" class="no-products-text info-note">
+              <i class="fa-solid fa-circle-info"></i> Selecciona primero un tipo de servicio para añadir piezas.
+            </p>
+            <p v-else-if="serviceForm.tipo_revision_id && productosFiltrados.length === 0" class="no-products-text warning-note">
+              <i class="fa-solid fa-triangle-exclamation"></i> No hay productos asociados a este servicio ni de uso general.
+            </p>
+            <p v-else-if="selectedProducts.length === 0" class="no-products-text">
               No se han añadido piezas extra a este servicio.
             </p>
           </div>
@@ -92,7 +103,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
 import api from '@/services/api'
 import { useNotificationStore } from '@/stores/notification'
 
@@ -112,6 +123,23 @@ const serviceForm = ref({
 })
 
 const selectedProducts = ref([])
+
+const productosFiltrados = computed(() => {
+  if (!serviceForm.value.tipo_revision_id) {
+    return []
+  }
+  const tipoId = parseInt(serviceForm.value.tipo_revision_id)
+  return catalogoProductos.value.filter(
+    p => p.tipo_revision_id === null || p.tipo_revision_id === undefined || p.tipo_revision_id === tipoId
+  )
+})
+
+watch(() => serviceForm.value.tipo_revision_id, () => {
+  selectedProducts.value = selectedProducts.value.filter(item => {
+    if (!item.producto_id) return true
+    return productosFiltrados.value.some(p => p.producto_id === item.producto_id)
+  })
+})
 
 const cerrar = () => {
   emit('close')
@@ -134,6 +162,10 @@ const fetchDropdownData = async () => {
 }
 
 const addProductRow = () => {
+  if (!serviceForm.value.tipo_revision_id) {
+    notificationStore.showError("Selecciona primero un tipo de servicio.")
+    return
+  }
   selectedProducts.value.push({ producto_id: '', cantidad: 1 })
 }
 
@@ -251,7 +283,14 @@ const saveService = async () => {
   background: #9d00ff; color: #fff; border: 2px solid #000; font-family: 'Bangers', cursive;
   padding: 5px 15px; cursor: pointer; transition: transform 0.2s; font-size: 1rem;
 }
-.add-product-btn:hover { transform: translate(-2px, -2px); box-shadow: 3px 3px 0 #000; }
+.add-product-btn:hover:not(:disabled) { transform: translate(-2px, -2px); box-shadow: 3px 3px 0 #000; }
+.add-product-btn:disabled {
+  background: #444;
+  color: #888;
+  cursor: not-allowed;
+  opacity: 0.6;
+  border-color: #333;
+}
 
 .product-row {
   display: grid; grid-template-columns: 1fr 80px 40px; gap: 10px; margin-bottom: 10px; align-items: center;
@@ -265,6 +304,8 @@ const saveService = async () => {
 .no-products-text {
   text-align: center; color: #666; font-style: italic; margin: 10px 0 0 0; font-size: 0.9rem;
 }
+.info-note { color: #00e5ff !important; font-style: normal; }
+.warning-note { color: #ffcc00 !important; font-style: normal; }
 
 
 .modal-actions { display: flex; justify-content: flex-end; gap: 15px; margin-top: 30px; }

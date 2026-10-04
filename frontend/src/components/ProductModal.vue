@@ -31,13 +31,23 @@
                 <option value="" disabled>Selecciona una categoría...</option>
                 <option value="Aceites y Fluidos">Aceites y Fluidos</option>
                 <option value="Filtros">Filtros</option>
-                <option value="Frenos">Frenos</option>
+                <option value="Discos y Frenos">Discos y Frenos</option>
                 <option value="Motor y Escape">Motor y Escape</option>
                 <option value="Suspensión y Dirección">Suspensión y Dirección</option>
                 <option value="Baterías y Electricidad">Baterías y Electricidad</option>
                 <option value="Neumáticos y Llantas">Neumáticos y Llantas</option>
                 <option value="Herramientas y Consumibles">Herramientas y Consumibles</option>
                 <option value="Otras Piezas">Otras Piezas</option>
+              </select>
+            </div>
+
+            <div class="input-group">
+              <label for="tipo_revision_prod" class="label-form">Tipo de Servicio:</label>
+              <select id="tipo_revision_prod" v-model="productForm.tipo_revision_id" class="input-form select-form">
+                <option :value="null">Cualquiera / General</option>
+                <option v-for="tipo in tiposRevision" :key="tipo.tipo_revision_id" :value="tipo.tipo_revision_id">
+                  {{ tipo.nombre }}
+                </option>
               </select>
             </div>
 
@@ -68,20 +78,36 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import api from '@/services/api' 
 import { useNotificationStore } from '@/stores/notification'
 
 const emit = defineEmits(['close', 'refreshProducts'])
 const notificationStore = useNotificationStore()
 
+const tiposRevision = ref([])
+
 const productForm = ref({
   marca: '',
   nombre: '',
   referencia: '',
   categoria: '',
+  tipo_revision_id: null,
   detalles: '',
   imagen: null
+})
+
+const fetchTipos = async () => {
+  try {
+    const res = await api.get('/revisiones/tipos/')
+    tiposRevision.value = res.data
+  } catch (error) {
+    console.error("Error al cargar tipos de revisión:", error)
+  }
+}
+
+onMounted(() => {
+  fetchTipos()
 })
 
 const handleFileUpload = (event) => {
@@ -107,6 +133,9 @@ const saveProduct = async () => {
     }
     if (productForm.value.categoria) {
       formData.append('categoria', productForm.value.categoria)
+    }
+    if (productForm.value.tipo_revision_id) {
+      formData.append('tipo_revision_id', productForm.value.tipo_revision_id)
     }
 
     if (productForm.value.imagen) {

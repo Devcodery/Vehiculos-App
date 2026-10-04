@@ -16,6 +16,7 @@ async def create_product(marca: str = Form(...),
                          detalles: Optional[str] = Form(None),
                          referencia: Optional[str] = Form(None),
                          categoria: Optional[str] = Form(None),
+                         tipo_revision_id: Optional[str] = Form(None),
                          archivo_foto: Optional[UploadFile] = File(None),
                          current_user: User = Depends(get_current_user),
                          session: Session = Depends(get_session)):
@@ -35,12 +36,20 @@ async def create_product(marca: str = Form(...),
         
         db_path = f"products/{file_name}"
 
+    parsed_tipo_id = None
+    if tipo_revision_id and str(tipo_revision_id).strip() and str(tipo_revision_id).lower() not in ("null", "none", "undefined"):
+        try:
+            parsed_tipo_id = int(tipo_revision_id)
+        except ValueError:
+            parsed_tipo_id = None
+
     new_product = Product(
         marca=marca, 
         nombre=nombre, 
         detalles=detalles, 
         referencia=referencia, 
         categoria=categoria, 
+        tipo_revision_id=parsed_tipo_id,
         imagen=db_path
     )
     
@@ -51,9 +60,14 @@ async def create_product(marca: str = Form(...),
     return new_product
 
 @router.get("/", response_model=list[Product])
-async def list_products(current_user: User = Depends(get_current_user),
+async def list_products(tipo_revision_id: Optional[int] = None,
+                        current_user: User = Depends(get_current_user),
                         session: Session = Depends(get_session)):
     statement = select(Product)
+    if tipo_revision_id is not None:
+        statement = statement.where(
+            (Product.tipo_revision_id == tipo_revision_id) | (Product.tipo_revision_id == None)
+        )
     products = session.exec(statement).all()
     return products
 
@@ -64,6 +78,7 @@ async def update_product(producto_id: int,
                          detalles: Optional[str] = Form(None),
                          referencia: Optional[str] = Form(None),
                          categoria: Optional[str] = Form(None),
+                         tipo_revision_id: Optional[str] = Form(None),
                          archivo_foto: Optional[UploadFile] = File(None),
                          current_user: User = Depends(get_current_user),
                          session: Session = Depends(get_session)):
@@ -81,6 +96,14 @@ async def update_product(producto_id: int,
         product.referencia = referencia
     if categoria is not None:
         product.categoria = categoria
+    if tipo_revision_id is not None:
+        if str(tipo_revision_id).strip() and str(tipo_revision_id).lower() not in ("null", "none", "undefined", ""):
+            try:
+                product.tipo_revision_id = int(tipo_revision_id)
+            except ValueError:
+                product.tipo_revision_id = None
+        else:
+            product.tipo_revision_id = None
         
     if archivo_foto and archivo_foto.filename:
         product_folder = os.path.join(MEDIA_ROOT, "products")
