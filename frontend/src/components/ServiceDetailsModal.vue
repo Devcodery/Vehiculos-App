@@ -292,7 +292,7 @@ const cerrar = () => {
 
 const formatearFecha = (fechaStr) => {
   if (!fechaStr) return 'N/A'
-  const date = new Date(fechaStr)
+  const date = fechaStr.includes('T') ? new Date(fechaStr) : new Date(`${fechaStr}T00:00:00`)
   return date.toLocaleDateString('es-ES', {
     year: 'numeric',
     month: 'long',

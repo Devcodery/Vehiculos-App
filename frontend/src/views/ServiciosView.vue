@@ -114,13 +114,11 @@ const limpiarFechas = () => {
 
 const formatearFecha = (fechaStr) => {
     if (!fechaStr) return 'N/A'
-    const date = new Date(fechaStr)
+    const date = fechaStr.includes('T') ? new Date(fechaStr) : new Date(`${fechaStr}T00:00:00`)
     return date.toLocaleDateString('es-ES', {
         year: 'numeric',
         month: '2-digit',
-        day: '2-digit',
-        hour: '2-digit',
-        minute: '2-digit'
+        day: '2-digit'
     })
 }
 
@@ -140,20 +138,16 @@ const historialFiltrado = computed(() => {
     }
 
     if (fechaInicio.value) {
-        const inicio = new Date(fechaInicio.value)
-        inicio.setHours(0, 0, 0, 0)
         filtrado = filtrado.filter(s => {
-            const fechaSrv = new Date(s.fecha)
-            return fechaSrv >= inicio
+            if (!s.fecha) return false
+            return s.fecha.substring(0, 10) >= fechaInicio.value
         })
     }
 
     if (fechaFin.value) {
-        const fin = new Date(fechaFin.value)
-        fin.setHours(23, 59, 59, 999)
         filtrado = filtrado.filter(s => {
-            const fechaSrv = new Date(s.fecha)
-            return fechaSrv <= fin
+            if (!s.fecha) return false
+            return s.fecha.substring(0, 10) <= fechaFin.value
         })
     }
 
