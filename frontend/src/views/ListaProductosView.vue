@@ -160,9 +160,7 @@ const productosFiltrados = computed(() => {
       (prod.referencia && prod.referencia.toLowerCase().includes(busquedaNombre.value.toLowerCase()))
 
     const matchesCategoria = 
-      filtroCategoria.value === 'TODOS' || 
-      prod.categoria === filtroCategoria.value ||
-      (filtroCategoria.value === 'Discos y Frenos' && prod.categoria === 'Frenos')
+      filtroCategoria.value === 'TODOS' || prod.categoria === filtroCategoria.value
 
     const matchesTipo = 
       filtroTipoServicio.value === 'TODOS' ||

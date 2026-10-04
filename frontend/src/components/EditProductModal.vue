@@ -156,10 +156,8 @@ onMounted(() => {
 
 watch(() => props.producto, (nuevoProducto) => {
   if (nuevoProducto) {
-    const cat = nuevoProducto.categoria === 'Frenos' ? 'Discos y Frenos' : nuevoProducto.categoria
     formulario.value = {
       ...nuevoProducto,
-      categoria: cat,
       tipo_revision_id: nuevoProducto.tipo_revision_id ?? null
     }
     archivoImagen.value = null
